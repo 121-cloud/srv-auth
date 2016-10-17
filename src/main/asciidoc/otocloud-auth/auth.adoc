@@ -1,0 +1,709 @@
+= 用户管理
+
+== 注册管理员
+
+[source]
+----
+HTTP Request:
+POST /api/otocloud-auth/user-management/users
+
+EventBusAddress: <服务名>.user-management.users.post
+----
+
+=== HTTP请求
+[source,json]
+----
+{
+  "name": "管理员用户号",
+  "password": "密码",
+  "org_acct_id": "企业账户ID",
+  "cell_no": "手机号",
+  "email": "管理员邮箱"
+}
+----
+
+=== 事件总线消息体
+
+[source,json]
+----
+{
+  "content": {
+    "name": "管理员用户号",
+    "password": "密码",
+    "org_acct_id": "企业账户ID",
+    "cell_no": "手机号",
+    "email": "管理员邮箱"
+  }
+}
+----
+
+=== HTTP响应
+
+Reply:
+[source,json]
+----
+{
+  "errCode": 0,
+  "errMsg": "OK",
+  "data": {
+    "userOpenId": "USER_OPEN_ID"
+  }
+}
+----
+
+== 手动新增用户
+[source]
+----
+HTTP Request:
+POST /api/otocloud-auth/user-management/users/operators
+
+EventBusAddress: <服务名>.user-management.users.operators.post
+----
+
+=== HTTP请求
+[source,json]
+----
+{
+  "user_name": "用户名",
+  "cell_no": "手机号",
+  "email": "管理员邮箱"
+}
+----
+
+=== HTTP响应
+
+正常情况下，返回用户信息：
+[source,json]
+----
+{
+  "user_name": "用户名",
+  "cell_no": "手机号",
+  "email": "管理员邮箱"
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法新增该用户,请检查 "用户名称/手机号码/邮箱" 是否已经注册."
+}
+----
+
+
+
+== 登录
+
+[source]
+----
+HTTP Request:
+post /api/otocloud-auth/user-management/users/actions/login
+
+EventBusAddress: <服务名>.user-management.users.login
+----
+
+=== HTTP请求
+通过用户名和密码登录.
+[source,json]
+----
+{
+  "userName": "用户号",
+  "password": "密码"
+}
+----
+通过手机号和密码登录.
+[source,json]
+----
+{
+  "cellNo": "手机号",
+  "password": "密码"
+}
+----
+
+=== 事件总线消息体
+通过用户名和密码登录. +
+
+MessageBody:
+[source,json]
+----
+{
+  "content": {
+    "userName": "用户号",
+    "password": "密码"
+  }
+}
+----
+
+=== HTTP响应
+
+正常情况下，返回用户信息：
+
+[source,json]
+----
+{
+  "user_openid": "用户OpenID",
+  "user_name": "用户名",
+  "access_token": "接口调用凭证",
+  "expires_in": "接口调用凭证有效期（秒）",
+  "acct_id": "企业账户ID",
+  "session": { //客户端无法在响应体中访问Session。
+    "id": "sessionID",
+    "acctId": "企业账户ID" //Integer
+  },
+  "roles": ["角色1", "角色2"], //用户角色列表,一个用户可以在一个应用中有一个或多个角色
+  "apps":[
+    {
+        "app_name":"应用名称",
+        "app_functions":["功能1", "功能2"] //应用功能列表
+    }
+  ]
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "Fail"
+}
+----
+
+== 绑定ERP账户
+[source]
+----
+HTTP Request:
+post /api/otocloud-auth/erp-connection/users/bind
+
+EventBusAddress: <服务名>.erp-connection.users.bind
+----
+
+=== HTTP请求
+[source,json]
+----
+{
+  "erp_usercode": "ERP用户名",
+  "erp_password": "ERP密码"
+}
+----
+
+=== HTTP响应
+正常情况下，返回用户信息：
+
+[source,json]
+----
+{
+  "isBound": "true/false"
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法绑定ERP账户,请检查ERP用户名和ERP密码是否正确."
+}
+----
+
+== 绑定ERP账户查询
+[source]
+----
+HTTP Request:
+get /api/otocloud-auth/erp-connection/users/bind
+
+EventBusAddress: <服务名>.erp-connection.users.bind.get
+----
+
+=== HTTP请求
+[source,json]
+----
+无请求体.
+----
+
+=== HTTP响应
+绑定情况下，返回用户信息：
+
+[source,json]
+----
+{
+  "isBound": "true",
+  "erp_usercode": "绑定的ERP账户名"
+}
+----
+
+未绑定情况下，返回用户信息：
+
+[source,json]
+----
+{
+  "isBound": "false"
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法查询绑定的ERP账户."
+}
+----
+== 解除ERP绑定
+[source]
+----
+HTTP Request:
+delete /api/otocloud-auth/erp-connection/users/bind
+
+EventBusAddress: <服务名>.erp-connection.users.bind.delete
+----
+
+=== HTTP请求
+[source,json]
+----
+无请求体.
+----
+
+=== HTTP响应
+解除绑定后，返回原有绑定的ERP账户名：
+
+[source,json]
+----
+{
+  "isBound": "false",
+  "erp_usercode": "绑定的ERP账户名"
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法解除ERP账户的绑定."
+}
+----
+
+
+== 使用ERP账户登录
+
+[source]
+----
+HTTP Request:
+post /api/otocloud-auth/user-management/users/actions/erp/login
+
+EventBusAddress: <服务名>.user-management.users.erp.login
+----
+
+=== HTTP请求
+通过用户名和密码登录.
+[source,json]
+----
+{
+  "user_name": "用户名",
+  "password": "密码",
+  "acct_id" : "Integer, 企业账号ID"
+}
+----
+
+=== HTTP响应
+正常情况下，返回用户信息：
+
+[source,json]
+----
+{
+  "user_name": "用户名",
+  "access_token": "接口调用凭证",
+  "expires_in": "接口调用凭证有效期（秒）",
+  "acct_id": "企业账户ID",
+  "session": { //客户端无法在响应体中访问Session。
+    "id": "sessionID",
+    "acctId": "企业账户ID" //Integer
+  }
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法登录系统"
+}
+----
+
+== 导入ERP用户
+[source]
+----
+HTTP Request:
+get /api/otocloud-auth/user-management/users/actions/erp/import
+get /api/otocloud-auth/user-management/users/actions/erp/import?monitor_address
+
+EventBusAddress: <服务名>.user-management.users.erp.import
+----
+
+== 查询进度监听地址
+[source]
+----
+get /api/otocloud-auth/user-management/users/actions/erp/import?monitor_address
+----
+[source]
+----
+{
+    "progress_monitor_address": "进度监听的消息总线地址."
+}
+----
+
+
+=== HTTP请求
+[source]
+----
+get /api/otocloud-auth/user-management/users/actions/erp/import
+----
+
+=== HTTP响应
+正常情况下,返回进度监听地址.
+[source]
+----
+{
+    "result": "ok",
+    "progress_monitor_address": "进度监听的消息总线地址."
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法导入ERP用户(具体原因是...)"
+}
+----
+
+== 导入ERP用户进度监控
+[source]
+----
+EventBusAddress: <服务名>.user-management.users.erp.import.process.monitor
+----
+
+=== 事件监听
+[source]
+----
+register: <服务名>.user-management.users.erp.import.process.monitor
+----
+
+=== 事件响应
+[source]
+----
+{
+    "total_work": "Integer, 总进度",
+    "delta_work": "Integer, 更新的进度",
+    "finished_work": "Integer, 已完成的进度"
+}
+----
+
+== 退出
+
+[source]
+----
+HTTP Request:
+post /api/otocloud-auth/user-management/users/actions/logout
+
+EventBusAddress: <服务名>.user-management.users.logout
+----
+
+=== HTTP请求
+
+[source]
+----
+{
+  "userOpenId": "用户OpenID"
+}
+----
+
+=== 事件总线消息体
+
+MessageBody:
+[source,json]
+----
+{
+  "content": {
+    "userOpenId": "用户OpenID"
+  }
+}
+----
+
+=== HTTP响应
+
+Reply:
+[source,json]
+----
+{
+  "errCode": 0,
+  "errMsg": "OK"
+}
+----
+
+== 修改用户信息
+
+[source]
+----
+HTTP Request:
+put /api/otocloud-auth/user-management/users/:openId
+
+EventBusAddress: <服务名>.user-management.users.put
+----
+
+=== HTTP请求
+
+[source]
+----
+{
+  "name": "新的用户名", //optional
+  "password": "新的用户密码", //optional
+  "org_acct_id": "新的企业账户", //optional，Integer
+  "cell_no": "新的手机号", //optional
+  "email": "新的邮箱" //optional
+}
+----
+
+=== 事件总线消息体
+
+MessageBody:
+
+content中的字段都是可选的。
+[source,json]
+----
+{
+  "queryParams": {
+    "openId":"用户的OpenID"
+  },
+  "content": {
+    "name": "新的用户名", //optional
+    "password": "新的用户密码", //optional
+    "org_acct_id": "新的企业账户", //optional，Integer
+    "cell_no": "新的手机号", //optional
+    "email": "新的邮箱" //optional
+  }
+}
+----
+
+=== HTTP响应
+
+正常情况下，返回新的用户信息：
+
+[source,json]
+----
+{
+  "userOpenId": "用户原有OpenID",
+  "userName": "用户名",
+  "session": { //客户端无法在响应体中访问Session。
+      "id": "sessionID",
+      "accId": "企业账户ID" //Integer
+  }
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "Fail"
+}
+----
+
+== 查询用户(分页)
+根据企业账户ID和部门ID查询分页的用户数据.
+
+[source]
+----
+HTTP Request:
+post /api/otocloud-auth/user-management/users/page
+
+EventBusAddress: <服务名>.user-management.users.get.page
+----
+
+=== HTTP请求
+[source]
+----
+{
+    "page_index" : 0,
+    "page_size" : 10, //可选字段，每个页面的数据大小。
+    "department_id":0 //部门ID.
+}
+----
+
+=== HTTP响应
+[source]
+.请求成功
+----
+{
+  "page_num":0, //全部页数
+  "page_index":0, //页索引(以0开始)
+  "items_total_num":0, //全部数据大小
+  "items_in_page":[
+      {"id":"", "name":"", "cell_no":"", "email":""},
+      {"id":"", "name":"", "cell_no":"", "email":""}
+      //...
+  ]
+}
+----
+[source]
+.请求失败
+----
+{
+  "errCode": 4004,
+  "errMsg": "请求的数据页不存在"
+}
+----
+
+== 查询用户统计信息
+
+管理员查询本企业下的用户统计信息. +
+如用户总数(包含管理员和业务员), 正常用户数, 未激活用户数, 禁用用户数.
+
+[source]
+----
+HTTP Request:
+get /api/otocloud-auth/query-management/users/statistics
+
+EventBusAddress: <服务名>.query-management.users.statistics.get
+----
+
+=== HTTP请求
+[source]
+----
+无请求体。
+----
+=== HTTP响应
+
+正常情况下, 返回统计数据.
+
+[source,json]
+----
+{
+  "total_user_number": "Integer, 全部用户数",
+  "active_user_number": "Integer, 激活的用户数/正常用户数",
+  "inactive_user_number": "Integer, 未激活用户数",
+  "forbidden_user_number": "Integer, 禁用用户数",
+  "unknown_user_number": "Integer, 未知状态的用户数(用户状态为空)"
+}
+----
+
+错误时，返回错误码和错误信息：
+
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "无法查询用户统计数据,可能的原因是: 没有查询权限."
+}
+----
+
+
+== 删除用户
+
+[source]
+----
+HTTP Request:
+delete /api/otocloud-auth/user-management/users/:userId
+
+EventBusAddress: <服务名>.user-management.users.delete
+----
+
+=== HTTP请求
+
+[source]
+----
+无请求体。
+----
+
+=== 事件总线消息体
+
+[source]
+----
+{
+  "queryParams": {
+    "userId":"用户的UserID"
+  }
+}
+----
+
+=== HTTP响应
+
+[source,json]
+----
+{
+  "errCode": 0,
+  "errMsg": "OK"
+}
+----
+
+== 注册信息查询
+=== 查询手机号是否重复
+
+----
+HTTP Request:
+get /api/otocloud-auth/user-management/users/verify/:cellNo
+
+EventBusAddress: <服务名>.user-management.users.verify.cellNo
+----
+==== HTTP请求
+无请求体.
+
+==== HTTP响应
+如果手机号已经注册过,则返回如下结果:
+[source,json]
+----
+{
+    "exists":true
+}
+----
+如果手机号还没有注册,则返回如下结果:
+[source,json]
+----
+{
+    "exists":false
+}
+----
+如果无法验证手机号,则返回如下结果:
+[source,json]
+----
+{
+  "errCode": 1,
+  "errMsg": "Fail"
+}
+----
+
+== 查询部门信息
+=== HTTP请求
+----
+get /api/otocloud-auth/user-management/departments
+----
+=== HTTP响应
+[source,json]
+----
+[
+    {
+        "id":1,
+        "dept_name":"name1",
+        "dept_manager":""
+    },
+    {
+        "id":2,
+        "dept_name":"name2",
+        "dept_manager":""
+    },
+    ...
+]
+----

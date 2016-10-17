@@ -1,0 +1,47 @@
+{
+  "main": "otocloud.auth.verticle.AuthService",
+  "options": {
+    "config": {
+      "service_name": "otocloud-auth",
+      "api_register_server": {
+        "webserver_name": "121webserver-N01"
+      },
+      "mongo_client": {
+        "host": "10.10.23.112",
+        "port": 27017,
+        "maxPoolSize": 50,
+        "minPoolSize": 25,
+        "maxIdleTimeMS": 300000,
+        "maxLifeTimeMS": 3600000,
+        "waitQueueMultiple": 10,
+        "waitQueueTimeoutMS": 10000,
+        "maintenanceFrequencyMS": 2000,
+        "maintenanceInitialDelayMS": 500
+      },
+      "sys_datasource": {
+        "sharedpool": "jdbc-psc",
+        "config": {
+          "url": "jdbc:mysql://10.10.23.112:3306/121db_new?useUnicode=true&characterEncoding=UTF-8",
+          //"url": "jdbc:mysql://localhost:3306/121db_new?useUnicode=true&characterEncoding=UTF-8",
+          "driver_class": "com.mysql.jdbc.Driver",
+          "max_pool_size": 30,
+          "max_idle_time": 14400,
+          "user": "test",
+          "password": "test"
+        }
+      },
+      "component_deployment": [
+      ],
+      "component_common": {
+      },
+      "component_config": {
+        "account-registry": {
+          "options": {
+            "config": {
+            }
+          }
+        }
+      }
+    }
+  }
+}

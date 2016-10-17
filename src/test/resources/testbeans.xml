@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+    <bean id="springMethodInterceptor"
+          class="spring.AsyncMethodInterceptor"
+          abstract="false" lazy-init="default">
+    </bean>
+
+    <bean id="asyncServiceImpl" class="spring.AsyncServiceImpl"/>
+
+    <bean id="asyncService"
+          class="org.springframework.aop.framework.ProxyFactoryBean"
+          abstract="false" lazy-init="default"
+          autowire="default" dependency-check="default">
+        <property name="target">
+            <ref bean="asyncServiceImpl" />
+        </property>
+        <property name="interceptorNames">
+            <list>
+                <value>springMethodInterceptor</value>
+            </list>
+        </property>
+    </bean>
+</beans>

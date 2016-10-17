@@ -1,0 +1,60 @@
+swagger: '2.0'
+info:
+  title: 121Cloud Auth Inner API
+  description: 内部数据结构
+  version: 1.0.0
+host: localhost
+schemes:
+  - https
+basePath: /v1
+produces:
+  - application/json
+
+definitions:
+  Operation:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: '操作[add,delete,update,query]'
+      data:
+        type: object
+        description: '被操作的数据'
+  User:
+    type: object
+    required:
+      - userName
+      - password
+    properties:
+      openId:
+        type: string
+        description: '操作资源的公开用户ID [自动生成]'
+      ID:
+        type: string
+        format: uuid
+        description: '主键'
+      userName:
+        type: string
+        description: '用户名称'
+      password:
+        type: string
+        description: '用户密码[被加密]'
+      cellNo:
+        type: string
+        description: '用户手机号'
+      email:
+        type: string
+        format: email
+        description: '用户邮箱'
+  ErrorCode:
+    type: array
+    items:
+      - NotFound:
+        type: object
+        errCode: 404
+        errMsg: 'NotFound'
+      - InnerError:
+        errCode: 405
+        errMsg: 'InnerError'

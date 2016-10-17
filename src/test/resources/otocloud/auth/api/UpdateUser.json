@@ -1,0 +1,15 @@
+{
+  "operation": "update",
+  "data":
+{
+  "openId": "openId123",
+  //可选的修改属性-用户名
+  "userName": "USERNAME",
+  //可选的修改属性-密码
+  "password": "USERNAME",
+  //可选的修改属性-手机号
+  "phoneNumber": "OPENID123",
+  //可选的修改属性-邮箱
+  "email": "OPENID123"
+}
+}

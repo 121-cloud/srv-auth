@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="otocloud.auth.mybatis.mapper.OrgDeptMapper" >
+  <resultMap id="BaseResultMap" type="otocloud.auth.mybatis.entity.OrgDept" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="org_acct_id" property="orgAcctId" jdbcType="INTEGER" />
+    <result column="dept_name" property="deptName" jdbcType="VARCHAR" />
+    <result column="dept_manager" property="deptManager" jdbcType="VARCHAR" />
+    <result column="entry_id" property="entryId" jdbcType="INTEGER" />
+    <result column="entry_datetime" property="entryDatetime" jdbcType="TIMESTAMP" />
+    <result column="update_id" property="updateId" jdbcType="INTEGER" />
+    <result column="update_datetime" property="updateDatetime" jdbcType="TIMESTAMP" />
+    <result column="delete_id" property="deleteId" jdbcType="INTEGER" />
+    <result column="delete_datetime" property="deleteDatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, org_acct_id, dept_name, dept_manager, entry_id, entry_datetime, update_id, update_datetime, 
+    delete_id, delete_datetime
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from org_dept
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from org_dept
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="otocloud.auth.mybatis.entity.OrgDept" >
+    insert into org_dept (id, org_acct_id, dept_name, 
+      dept_manager, entry_id, entry_datetime, 
+      update_id, update_datetime, delete_id, 
+      delete_datetime)
+    values (#{id,jdbcType=INTEGER}, #{orgAcctId,jdbcType=INTEGER}, #{deptName,jdbcType=VARCHAR}, 
+      #{deptManager,jdbcType=VARCHAR}, #{entryId,jdbcType=INTEGER}, #{entryDatetime,jdbcType=TIMESTAMP}, 
+      #{updateId,jdbcType=INTEGER}, #{updateDatetime,jdbcType=TIMESTAMP}, #{deleteId,jdbcType=INTEGER}, 
+      #{deleteDatetime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="otocloud.auth.mybatis.entity.OrgDept" >
+    insert into org_dept
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orgAcctId != null" >
+        org_acct_id,
+      </if>
+      <if test="deptName != null" >
+        dept_name,
+      </if>
+      <if test="deptManager != null" >
+        dept_manager,
+      </if>
+      <if test="entryId != null" >
+        entry_id,
+      </if>
+      <if test="entryDatetime != null" >
+        entry_datetime,
+      </if>
+      <if test="updateId != null" >
+        update_id,
+      </if>
+      <if test="updateDatetime != null" >
+        update_datetime,
+      </if>
+      <if test="deleteId != null" >
+        delete_id,
+      </if>
+      <if test="deleteDatetime != null" >
+        delete_datetime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="orgAcctId != null" >
+        #{orgAcctId,jdbcType=INTEGER},
+      </if>
+      <if test="deptName != null" >
+        #{deptName,jdbcType=VARCHAR},
+      </if>
+      <if test="deptManager != null" >
+        #{deptManager,jdbcType=VARCHAR},
+      </if>
+      <if test="entryId != null" >
+        #{entryId,jdbcType=INTEGER},
+      </if>
+      <if test="entryDatetime != null" >
+        #{entryDatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null" >
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateDatetime != null" >
+        #{updateDatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteId != null" >
+        #{deleteId,jdbcType=INTEGER},
+      </if>
+      <if test="deleteDatetime != null" >
+        #{deleteDatetime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="otocloud.auth.mybatis.entity.OrgDept" >
+    update org_dept
+    <set >
+      <if test="orgAcctId != null" >
+        org_acct_id = #{orgAcctId,jdbcType=INTEGER},
+      </if>
+      <if test="deptName != null" >
+        dept_name = #{deptName,jdbcType=VARCHAR},
+      </if>
+      <if test="deptManager != null" >
+        dept_manager = #{deptManager,jdbcType=VARCHAR},
+      </if>
+      <if test="entryId != null" >
+        entry_id = #{entryId,jdbcType=INTEGER},
+      </if>
+      <if test="entryDatetime != null" >
+        entry_datetime = #{entryDatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null" >
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateDatetime != null" >
+        update_datetime = #{updateDatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteId != null" >
+        delete_id = #{deleteId,jdbcType=INTEGER},
+      </if>
+      <if test="deleteDatetime != null" >
+        delete_datetime = #{deleteDatetime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="otocloud.auth.mybatis.entity.OrgDept" >
+    update org_dept
+    set org_acct_id = #{orgAcctId,jdbcType=INTEGER},
+      dept_name = #{deptName,jdbcType=VARCHAR},
+      dept_manager = #{deptManager,jdbcType=VARCHAR},
+      entry_id = #{entryId,jdbcType=INTEGER},
+      entry_datetime = #{entryDatetime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_datetime = #{updateDatetime,jdbcType=TIMESTAMP},
+      delete_id = #{deleteId,jdbcType=INTEGER},
+      delete_datetime = #{deleteDatetime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="selectByAcct" resultMap="BaseResultMap" >
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM org_dept
+    WHERE org_acct_id=#{orgAcctId} AND delete_datetime IS NULL
+  </select>
+</mapper>

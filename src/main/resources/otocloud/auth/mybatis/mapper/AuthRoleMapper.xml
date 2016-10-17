@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="otocloud.auth.mybatis.mapper.AuthRoleMapper">
+    <resultMap id="BaseResultMap" type="otocloud.auth.mybatis.entity.AuthRole">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="role_name" property="roleName" jdbcType="VARCHAR"/>
+        <result column="role_type_code" property="roleTypeCode" jdbcType="VARCHAR"/>
+        <result column="entry_id" property="entryId" jdbcType="INTEGER"/>
+        <result column="entry_datetime" property="entryDatetime" jdbcType="TIMESTAMP"/>
+        <result column="update_id" property="updateId" jdbcType="INTEGER"/>
+        <result column="update_datetime" property="updateDatetime" jdbcType="TIMESTAMP"/>
+        <result column="delete_id" property="deleteId" jdbcType="INTEGER"/>
+        <result column="delete_datetime" property="deleteDatetime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+    id, role_name, role_type_code, entry_id, entry_datetime, update_id, update_datetime, 
+    delete_id, delete_datetime
+  </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="otocloud.auth.mybatis.entity.AuthRoleExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from auth_role
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from auth_role
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from auth_role
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+    <insert id="insert" parameterType="otocloud.auth.mybatis.entity.AuthRole"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+
+        insert into auth_role (id, role_name, role_type_code,
+        entry_id, entry_datetime, update_id,
+        update_datetime, delete_id, delete_datetime
+        )
+        values (#{id,jdbcType=INTEGER}, #{roleName,jdbcType=VARCHAR}, #{roleTypeCode,jdbcType=VARCHAR},
+        #{entryId,jdbcType=INTEGER}, #{entryDatetime,jdbcType=TIMESTAMP}, #{updateId,jdbcType=INTEGER},
+        #{updateDatetime,jdbcType=TIMESTAMP}, #{deleteId,jdbcType=INTEGER}, #{deleteDatetime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <insert id="insertSelective" parameterType="otocloud.auth.mybatis.entity.AuthRole">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="BEFORE">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into auth_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="roleName != null">
+                role_name,
+            </if>
+            <if test="roleTypeCode != null">
+                role_type_code,
+            </if>
+            <if test="entryId != null">
+                entry_id,
+            </if>
+            <if test="entryDatetime != null">
+                entry_datetime,
+            </if>
+            <if test="updateId != null">
+                update_id,
+            </if>
+            <if test="updateDatetime != null">
+                update_datetime,
+            </if>
+            <if test="deleteId != null">
+                delete_id,
+            </if>
+            <if test="deleteDatetime != null">
+                delete_datetime,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=INTEGER},
+            <if test="roleName != null">
+                #{roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="roleTypeCode != null">
+                #{roleTypeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="entryId != null">
+                #{entryId,jdbcType=INTEGER},
+            </if>
+            <if test="entryDatetime != null">
+                #{entryDatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateId != null">
+                #{updateId,jdbcType=INTEGER},
+            </if>
+            <if test="updateDatetime != null">
+                #{updateDatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deleteId != null">
+                #{deleteId,jdbcType=INTEGER},
+            </if>
+            <if test="deleteDatetime != null">
+                #{deleteDatetime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="otocloud.auth.mybatis.entity.AuthRoleExample"
+            resultType="java.lang.Integer">
+        select count(*) from auth_role
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update auth_role
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=INTEGER},
+            </if>
+            <if test="record.roleName != null">
+                role_name = #{record.roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.roleTypeCode != null">
+                role_type_code = #{record.roleTypeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.entryId != null">
+                entry_id = #{record.entryId,jdbcType=INTEGER},
+            </if>
+            <if test="record.entryDatetime != null">
+                entry_datetime = #{record.entryDatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateId != null">
+                update_id = #{record.updateId,jdbcType=INTEGER},
+            </if>
+            <if test="record.updateDatetime != null">
+                update_datetime = #{record.updateDatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.deleteId != null">
+                delete_id = #{record.deleteId,jdbcType=INTEGER},
+            </if>
+            <if test="record.deleteDatetime != null">
+                delete_datetime = #{record.deleteDatetime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update auth_role
+        set id = #{record.id,jdbcType=INTEGER},
+        role_name = #{record.roleName,jdbcType=VARCHAR},
+        role_type_code = #{record.roleTypeCode,jdbcType=VARCHAR},
+        entry_id = #{record.entryId,jdbcType=INTEGER},
+        entry_datetime = #{record.entryDatetime,jdbcType=TIMESTAMP},
+        update_id = #{record.updateId,jdbcType=INTEGER},
+        update_datetime = #{record.updateDatetime,jdbcType=TIMESTAMP},
+        delete_id = #{record.deleteId,jdbcType=INTEGER},
+        delete_datetime = #{record.deleteDatetime,jdbcType=TIMESTAMP}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="otocloud.auth.mybatis.entity.AuthRole">
+        update auth_role
+        <set>
+            <if test="roleName != null">
+                role_name = #{roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="roleTypeCode != null">
+                role_type_code = #{roleTypeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="entryId != null">
+                entry_id = #{entryId,jdbcType=INTEGER},
+            </if>
+            <if test="entryDatetime != null">
+                entry_datetime = #{entryDatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateId != null">
+                update_id = #{updateId,jdbcType=INTEGER},
+            </if>
+            <if test="updateDatetime != null">
+                update_datetime = #{updateDatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deleteId != null">
+                delete_id = #{deleteId,jdbcType=INTEGER},
+            </if>
+            <if test="deleteDatetime != null">
+                delete_datetime = #{deleteDatetime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="otocloud.auth.mybatis.entity.AuthRole">
+    update auth_role
+    set role_name = #{roleName,jdbcType=VARCHAR},
+      role_type_code = #{roleTypeCode,jdbcType=VARCHAR},
+      entry_id = #{entryId,jdbcType=INTEGER},
+      entry_datetime = #{entryDatetime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_datetime = #{updateDatetime,jdbcType=TIMESTAMP},
+      delete_id = #{deleteId,jdbcType=INTEGER},
+      delete_datetime = #{deleteDatetime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+    <select resultMap="BaseResultMap" parameterType="otocloud.auth.mybatis.entity.AuthRoleExample"
+            id="selectByExampleWithRowbounds">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from auth_role
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+
+
+    <select id="getRoles" resultMap="BaseResultMap">
+        SELECT auth_role.*
+        FROM auth_user_role, auth_acct_role, auth_role
+        WHERE auth_user_role.auth_user_id = #{userId,jdbcType=INTEGER} -- userId
+        AND auth_acct_role.id = auth_user_role.auth_acct_role_id
+        AND auth_acct_role.org_acct_id = #{acctId,jdbcType=INTEGER} -- acctId
+        AND auth_role.id = auth_acct_role.auth_role_id;
+    </select>
+</mapper>

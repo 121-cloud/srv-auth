@@ -1,0 +1,192 @@
+swagger: '2.0'
+info:
+  title: 121Cloud Auth API
+  description: 管理121Cloud的用户身份认证和授权
+  version: 1.0.0
+host: localhost
+schemes:
+  - https
+basePath: /api/v1 #暂时不需要v1，直接使用/api作为根路径。
+produces:
+  - application/json
+
+paths:
+  /api/auth-service/user-management/users/actions/login:
+    post:
+      summary: '登录'
+      description: '根据用户名和密码登录用户.'
+      parameters:
+        - name: userName
+          in: body
+          description: '用户名称'
+          required: true
+          type: string
+        - name: password
+          in: body
+          description: '用户密码'
+          required: true
+          type: string
+      responses:
+        '200':
+          description: '用户登录成功'
+          schema:
+            $ref: '#/definitions/LoginSuccess'
+  /api/auth-service/user-management/users/actions/logout:
+    post:
+      summary: '退出'
+      description: '根据用户名退出.'
+      parameters:
+        - name: token
+          in: query
+          description: '接口访问凭证'
+          required: true
+          type: string
+        - name: userOpenId
+          in: body
+          description: '用户OpenId'
+          required: true
+          type: string
+      responses:
+        '200':
+          description: '用户退出成功'
+          schema:
+            $ref: '#/definitions/Success'
+  /api/auth-service/user-management/users/{userId}:
+    get:
+      summary: '查询用户'
+      description: '根据指定的用户ID，查询用户信息.'
+      parameters:
+        - name: userId
+          in: path
+          description: '用户ID'
+          required: true
+          type: string
+      responses:
+        '200':
+          description: '用户退出成功.'
+          schema:
+            $ref: '#/definitions/Success'
+    put:
+      summary: '更新用户'
+      description: '根据指定的用户ID，更新用户信息.'
+      parameters:
+        - name: user
+          in: body
+          description: '新用户'
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      tags:
+        - User
+      responses:
+        '200':
+          description: '用户退出成功'
+          schema:
+            $ref: '#/definitions/Success'
+    delete:
+      summary: '删除用户'
+      description: '删除指定的用户.'
+      parameters:
+        - name: userId
+          in: path
+          description: '用户ID'
+          required: true
+          type: string
+      responses:
+        '200':
+          description: '用户退出成功'
+          schema:
+            $ref: '#/definitions/Success'
+  /api/auth-service/user-management/users:
+    post:
+      summary: '新建用户'
+      description: |
+        提交一个新的用户信息，建立新的用户，并设置该用户的初始权限.
+      parameters:
+        - name: user
+          in: body
+          description: '新用户'
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+
+      tags:
+        - User
+      responses:
+        '200':
+          description: '新建的用户'
+          schema:
+            type: object
+            $ref: '#/definitions/User'
+        default:
+          description: '未知错误'
+          schema:
+            $ref: '#/definitions/ResponseMessage'
+
+definitions:
+  User:
+    type: object
+    required:
+      - name
+      - password
+      - org_acct_id
+    properties:
+      name:
+        type: string
+        description: '账户名'
+      password:
+        type: string
+        description: '密码'
+      org_acct_id:
+        type: string
+        description: '企业账户ID'
+      cellNo:
+        type: string
+        description: '手机号'
+      email:
+        type: string
+        description: '邮箱'
+  LoginSuccess:
+    type: object
+    properties:
+      userOpenId:
+       type: string
+       description: '用户OpenID'
+      userName:
+       type: string
+       description: '用户名'
+      accessToken:
+       type: string
+       description: '接口调用凭证'
+      expiresIn:
+       type: integer
+       description: '接口调用凭证有效期（单位：秒）'
+  Success:
+    type: object
+    properties:
+      errCode:
+        type: integer
+        format: int32
+        description: '错误码'
+        default: 0
+      errMsg:
+        type: string
+        description: '错误消息'
+        example: 'ok'
+      data:
+        type: object
+        description: '服务器返回的实际数据'
+        schema:
+          $ref: '#/definitions/LoginSuccess'
+  ResponseMessage:
+    type: object
+    properties:
+      errCode:
+        type: integer
+        format: int32
+      errMsg:
+        type: string
+      data:
+        type: object
+      logs:
+        type: string

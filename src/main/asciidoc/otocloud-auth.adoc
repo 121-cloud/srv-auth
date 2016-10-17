@@ -1,0 +1,89 @@
+= Auth模块的数据缓存
+:toc-title: 目录
+
+== 当前用户
+当用户登录时，会在Session中存储一个字段，标记当前登录用户的ID（不是OpenID，是数据库主键）。 +
+在Session中，通过下面的字段访问当前用户ID。
+[source,java]
+.代码样例
+----
+import otocloud.auth.common.session.SessionSchema;
+...
+JsonObject body = msg.body();
+JsonObject session = body.getJsonObject("session");
+
+//SessionSchema.CURRENT_USER_ID = "userId";
+int userId = session.getInteger(SessionSchema.CURRENT_USER_ID);
+----
+
+== 在线用户存储
+使用MongoDB做数据缓存处理。 +
+当用户登录时，自动生成该用户的OpenID。OpenID与用户的数据库主键（UserID）是1:1的关系。
+
+[source,json]
+.在线用户
+----
+{
+    "openId":"<UUID>", //登录时自动生成.
+    "userId":"用户ID", //数据库主键.
+    "userName":"用户名称",
+    "accId":"用户的企业账户ID"
+}
+----
+
+== 用户批量查询
+
+== 授权过程
+当用户发出请求时，WebServer将请求转发到Auth模块，Auth模块将提取UserId、HTTP请求的URL、HTTP请求方法。 +
+根据URL和Method生成其MD5值。计算时，按照如下格式拼写MD5的内容。
+----
+"<Method><SPACE><URL>"
+----
+例如，"get /module/app/:id"。 +
+从授权物化表中，根据MD5值，判断用户是否具有相应地权限。
+（完整URL的构成为/api/[服务名]/[组件名]/[url]）
+
+== 验证用户请求的API
+验证来自浏览器的请求是否合法. +
+事件总线地址是: "服务名"."组件名".users.url.filter
+
+=== 事件总线消息
+[source,json]
+----
+{
+  "api": {
+    "uri": "注册的url",
+    "method": "HTTP请求方法"
+  },
+  "queryParams": {
+    "token": "数据访问token."
+  }
+}
+----
+=== 事件总线响应
+==== 1. 验证成功
+[source,json]
+----
+{
+  "isLegal": true
+}
+----
+==== 2. 验证失败
+如果验证失败,返回false和失败原因.
+[source,json]
+----
+{
+  "isLegal": false,
+  "errCode": "失败错误码(int)",
+  "errMsg": "失败原因"
+}
+----
+
+== 从ERP导入用户
+数据库表AuthUser中的字段 connected_with_erp 表示该账户已经与ERP账户绑定.
+
+== 存储用户的OpenID
+使用MongoDB中存储 "UserID, OpenID, Production" 的对应关系.
+数据表: UserOpenIDMap.
+该数据表与用户是否登录无关, 用户信息作为一个操作数据存在.
+例如, 当用户登录金服桥后, 自动生成 OpenID, 关联 "#(UserID), ########-####-####-####-############(OpenID), FSB(Production)".

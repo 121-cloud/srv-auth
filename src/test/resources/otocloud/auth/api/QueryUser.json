@@ -1,0 +1,41 @@
+[
+  {
+    "operation": "query",
+    "condition": {
+      "openId": "openId123"
+    }
+  },
+  {
+    "operation": "returnQuery",
+    "data": {
+      "openId": "OPENID123",
+      "userName": "USERNAME",
+      "phoneNumber": "OPENID123",
+      "email": "OPENID123"
+    }
+  },
+  {
+    "operation": "queryMany",
+    "condition": {
+      //每页项数
+      "itemCountPerPage": 10,
+      //页数索引
+      "pageIndex": 0
+    }
+  },
+  {
+    "operation": "returnQueryMany",
+    "condition": {
+      //对象总数
+      "itemSum": 100,
+      //每页的数量
+      "itemCountPerPage": 10,
+      //页索引，第0页
+      "pageIndex": 0,
+      //某页内的项索引，第0项
+      "itemIndex": 0
+    },
+    "data": [
+    ]
+  }
+]

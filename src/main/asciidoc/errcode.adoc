@@ -1,0 +1,12 @@
+=== ErrorCode
+[options="header"]
+|===
+|errCode|errMsg|description
+|0|ok|操作成功
+|1|fail|操作失败
+|2|formatErr|消息格式错误
+|3|duplicatedUserName|重复的用户名
+|4|duplicatedCellNO|重复的手机号
+|4004|dataPageNotFound|请求的数据页不存在
+|===
+

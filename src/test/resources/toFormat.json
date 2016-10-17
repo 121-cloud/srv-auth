@@ -1,0 +1,67 @@
+{
+  "module_deployment": {
+    "module_id": "1000100010003781KD50",
+    "name": "otocloud_maven:otocloud:otocloud-app-rfb-cana:1.0.0-SNAPSHOT::otocloud-app-rfb-cana"
+  },
+  "module_config": {
+    "main": "otocloud.app.rfb.cana.ReverseFactoringAppEngine",
+    "options": {
+      "config": {
+        "service_id": "10",
+        "service_name": "otocloud-app-rfb-cana",
+        "app_desc": "凯拿应付保理服务",
+        "app_inst_scope": [
+          "1~1000"
+        ],
+        "distributed_node_index": 0,
+        "master_role": "2",
+        "run_webserver": false,
+        "api_register_server": {
+          "webserver_name": "121Node1"
+        },
+        "isolation_vertx_pool": false,
+        /*分布式集群配置*/
+        "cluster_config": {
+          "cluster_host": "10.10.23.20",
+          "cluster_port": 5701
+        },
+        "app_datasource": {
+          "sharedpool": "mongo-psc",
+          "config": {
+            "connection_string": "mongodb://10.10.23.112:27017",
+            "db_name": "RFB_CANA",
+            "username": "sa",
+            "password": "www",
+            "authSource": "121PSC.sa"
+          }
+        },
+        /*实例公共配置*/
+        "inst_common": {
+          /*实例活动组件自动部署*/
+          "component_deployment": [
+          ],
+          /*实例活动组件公共配置*/
+          "component_common": {
+          },
+          /*特定实例活动组件配置*/
+          "component_config": {
+          }
+        },
+        /*特定账户配置*/
+        "inst_config": {
+          "2": {
+            /*账户个性化部署*/
+            "component_deployment": [
+            ],
+            /*账户个性化公共配置*/
+            "component_common": {
+            },
+            /*账户个性化组件配置*/
+            "component_config": {
+            }
+          }
+        }
+      }
+    }
+  }
+}

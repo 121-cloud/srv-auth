@@ -1,0 +1,6 @@
+{
+  "sessionId": "SessionId", //固定字段
+  "userOpenId": "UserOpenId", //当前登录账户的对外ID
+  "accId": "AccountId", //账户ID
+  "someKey": "SomeValue" //应用需要的其他字段
+}

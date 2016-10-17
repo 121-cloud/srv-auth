@@ -1,0 +1,9 @@
+{
+  "content": {
+    "name": "管理员用户号",
+    "password": "密码",
+    "acctId": "账户ID",
+    "cell_no": "手机号",
+    "email": "管理员邮箱"
+  }
+}

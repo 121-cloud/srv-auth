@@ -1,0 +1,9 @@
+{
+  "user_id": 1,
+  "user_open_id": "OPEN_ID",
+  "acct_id": "ACCOUNT ID",
+  "token": "TOKEN",
+  "session_id": "SESSION_ID",
+  "login_date_time": "XXXX XXXX"
+  "local_login_date_time": "XXXX XXXX"
+}

@@ -1,0 +1,9 @@
+{
+  "queryParams":
+{
+  "token": "TOKEN"
+},
+  "content": {
+    "openId": "OPENID"
+  }
+}

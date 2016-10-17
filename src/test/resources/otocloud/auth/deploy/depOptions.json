@@ -1,0 +1,38 @@
+[
+  {
+    "module_deployment": {
+      "moduleid": "1000100010003781KD28",
+      "name": "otocloud_maven:otocloud:otocloud-auth:1.0.0-SNAPSHOT::otocloud-auth"
+    },
+    "module_config": {
+      "options": {
+        "config": {
+          "sys_datasource": {
+            "config": {
+              "max_pool_size": 30,
+              "password": "test",
+              "driver_class": "com.mysql.jdbc.Driver",
+              "user": "test",
+              "url": "jdbc:mysql://10.10.23.112:3306/121db_new?useUnicode=true&characterEncoding=UTF-8"
+            },
+            "sharedpool": "jdbc-psc"
+          },
+          "component_common": {},
+          "service_name": "otocloud-auth",
+          "component_config": {
+            "account-registry": {
+              "options": {
+                "config": {}
+              }
+            }
+          },
+          "api_register_server": {
+            "webserver_name": "121Node1"
+          },
+          "component_deployment": []
+        }
+      },
+      "main": "otocloud.auth.verticle.OtoCloudAuthService"
+    }
+  }
+]

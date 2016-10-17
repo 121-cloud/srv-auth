@@ -1,0 +1,19 @@
+[
+  {
+    "operation": "add",
+    "data": {
+      "userName": "zhang",
+      "password": "*123",
+      //企业账户ID
+      "accId": "AccountID"
+    }
+  },
+  {
+    "operation": "returnAdd",
+    "errCode": 0,
+    "errMsg": "OK",
+    "data": {
+      "userOpenId": "OpenID"
+    }
+  }
+]

@@ -1,0 +1,1 @@
+= AuthService提供的接口.

@@ -1,0 +1,11 @@
+{
+  "errCode": 0,
+  "errMsg": "OK",
+  "data": {
+    "userOpenId": "USER_OPEN_ID"
+  },
+  "session": {
+    "id": "SESSION_ID",
+    "acctId": "企业账户ID"
+  }
+}

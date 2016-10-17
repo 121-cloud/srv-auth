@@ -1,0 +1,4 @@
+{
+  "uri":"/app/resource1/:id",
+  "method":"post"
+}
