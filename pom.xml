@@ -472,12 +472,12 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
+<!--         <dependency>
             <scope>test</scope>
             <groupId>otocloud</groupId>
             <artifactId>otocloud-srv-test-base</artifactId>
             <version>${project.version}</version>
-        </dependency>
+        </dependency> -->
 
     </dependencies>
 
