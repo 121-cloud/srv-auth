@@ -3,11 +3,20 @@
   "options": {
     "config": {
       "service_name": "otocloud-auth",
+      "run_webserver": true,
+	  "webserver_config": {
+			"webserver_port": 8088,
+			"eventbus_enabled": true,
+			"static_res_service": true,
+			"delivery_options": {
+				"timeout": 60000
+			}
+	  },
       "api_register_server": {
-        "webserver_name": "121webserver-N01"
+        //"webserver_name": "121webserver-N01"
       },
       "mongo_client": {
-        "host": "10.10.23.112",
+        "host": "127.0.0.1",
         "port": 27017,
         "maxPoolSize": 50,
         "minPoolSize": 25,
@@ -21,8 +30,7 @@
       "sys_datasource": {
         "sharedpool": "jdbc-psc",
         "config": {
-          "url": "jdbc:mysql://10.10.23.112:3306/121db_new?useUnicode=true&characterEncoding=UTF-8",
-          //"url": "jdbc:mysql://localhost:3306/121db_new?useUnicode=true&characterEncoding=UTF-8",
+          "url": "jdbc:mysql://localhost:3306/121db_new?useUnicode=true&characterEncoding=UTF-8",
           "driver_class": "com.mysql.jdbc.Driver",
           "max_pool_size": 30,
           "max_idle_time": 14400,

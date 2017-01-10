@@ -34,11 +34,11 @@ public class AuthServiceDaemonWithMockUp {
     private static String webServerDeployId = null;
     private final Vertx vertx;
 
-    GatewayMockUp gatewayMockUp;
+    //GatewayMockUp gatewayMockUp;
 
     public AuthServiceDaemonWithMockUp(Vertx vertx) {
         this.vertx = vertx;
-        this.gatewayMockUp = new GatewayMockUp();
+        //this.gatewayMockUp = new GatewayMockUp();
     }
 
     /**
@@ -76,12 +76,12 @@ public class AuthServiceDaemonWithMockUp {
         });
 
         //单独运行时使用, 测试时不能使用
-        this.gatewayMockUp.mockUpLogin();
+        //this.gatewayMockUp.mockUpLogin();
     }
 
     public void stop(Future<Void> completeFuture) {
         //单独运行时使用,测试时不能使用.
-        this.gatewayMockUp.tearDownLogin();
+        //this.gatewayMockUp.tearDownLogin();
 
         vertx.undeploy(authServiceDeployId, result -> {
             if (result.succeeded()) {

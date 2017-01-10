@@ -335,8 +335,8 @@ public class AuthServiceAfterLoginIT {
     public void it_should_import_users_from_nc65(TestContext context) {
         final Async async = context.async();
 
-        GatewayMockUp gatewayMockUp = new GatewayMockUp();
-        gatewayMockUp.mockUpImport();
+/*        GatewayMockUp gatewayMockUp = new GatewayMockUp();
+        gatewayMockUp.mockUpImport();*/
 
         //监听进度
         String monitorAddress = "otocloud-auth.user-management.users.erp.import.process.monitor";
@@ -347,7 +347,7 @@ public class AuthServiceAfterLoginIT {
             int finishedWork = monitorInfo.getInteger(MonitorInfoSchema.FINISHED_WORK);
             int totalWork = monitorInfo.getInteger(MonitorInfoSchema.TOTAL_WORK);
             if (finishedWork == totalWork) {
-                gatewayMockUp.tearDownImport();
+                //gatewayMockUp.tearDownImport();
                 async.complete();
             }
         });

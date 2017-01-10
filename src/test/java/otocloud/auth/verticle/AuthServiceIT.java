@@ -360,8 +360,8 @@ public class AuthServiceIT {
     public void it_should_login_by_erp_successfully(TestContext context) {
         final Async async = context.async();
 
-        GatewayMockUp gatewayMockUp = new GatewayMockUp();
-        gatewayMockUp.mockUpLogin();
+        //GatewayMockUp gatewayMockUp = new GatewayMockUp();
+        //gatewayMockUp.mockUpLogin();
 
         JsonObject loginInfo = new JsonObject();
         loginInfo.put("user_name", "c1");
@@ -378,7 +378,7 @@ public class AuthServiceIT {
                 .body("access_token", CoreMatchers.notNullValue())
                 .body("expires_in", CoreMatchers.notNullValue());
 
-        gatewayMockUp.tearDownLogin();
+        //gatewayMockUp.tearDownLogin();
 
         async.complete();
     }

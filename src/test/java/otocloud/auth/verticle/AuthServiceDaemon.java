@@ -34,11 +34,11 @@ public class AuthServiceDaemon {
     private static String webServerDeployId = null;
     private final Vertx vertx;
 
-    GatewayMockUp gatewayMockUp;
+    //GatewayMockUp gatewayMockUp;
 
     public AuthServiceDaemon(Vertx vertx) {
         this.vertx = vertx;
-        this.gatewayMockUp = new GatewayMockUp();
+        //this.gatewayMockUp = new GatewayMockUp();
     }
 
     /**
