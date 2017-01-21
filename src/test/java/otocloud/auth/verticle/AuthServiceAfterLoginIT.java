@@ -1,4 +1,4 @@
-package otocloud.auth.verticle;
+/*package otocloud.auth.verticle;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
@@ -26,10 +26,10 @@ import java.util.UUID;
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assert.*;
 
-/**
+*//**
  * 测试用户登录后的功能.
  * zhangyef@yonyou.com on 2015-12-16.
- */
+ *//*
 @RunWith(VertxUnitRunner.class)
 public class AuthServiceAfterLoginIT {
     protected static final Logger logger = LoggerFactory.getLogger(AuthServiceAfterLoginIT.class);
@@ -125,11 +125,11 @@ public class AuthServiceAfterLoginIT {
     }
 
 
-    /**
+    *//**
      * 获得登录账户所在企业的部门列表
      *
      * @param context
-     */
+     *//*
     @Test
     public void it_should_get_a_list_of_departments(TestContext context) {
         final Async async = context.async();
@@ -156,11 +156,11 @@ public class AuthServiceAfterLoginIT {
         async.complete();
     }
 
-    /**
+    *//**
      * 测试用户列表的分页.
      *
      * @param context
-     */
+     *//*
     @Test
     public void it_should_get_a_page_of_userList(TestContext context) {
         final Async async = context.async();
@@ -326,17 +326,17 @@ public class AuthServiceAfterLoginIT {
     }
 
 
-    /**
+    *//**
      * 要求管理员角色.
      *
      * @param context
-     */
+     *//*
     @Test
     public void it_should_import_users_from_nc65(TestContext context) {
         final Async async = context.async();
 
-/*        GatewayMockUp gatewayMockUp = new GatewayMockUp();
-        gatewayMockUp.mockUpImport();*/
+        GatewayMockUp gatewayMockUp = new GatewayMockUp();
+        gatewayMockUp.mockUpImport();
 
         //监听进度
         String monitorAddress = "otocloud-auth.user-management.users.erp.import.process.monitor";
@@ -383,3 +383,4 @@ public class AuthServiceAfterLoginIT {
     }
 
 }
+*/

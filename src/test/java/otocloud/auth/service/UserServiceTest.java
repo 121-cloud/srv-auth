@@ -1,4 +1,4 @@
-package otocloud.auth.service;
+/*package otocloud.auth.service;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -7,21 +7,22 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.dbunit.ext.postgresql.UuidType;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import otocloud.auth.base.GuiceContextTestBase;
 import otocloud.auth.common.RSAUtil;
 import otocloud.auth.entity.User;
 
-import java.util.UUID;
 
-/**
+
+*//**
  * zhangyef@yonyou.com on 2015-10-30.
- */
+ *//*
 @RunWith(VertxUnitRunner.class)
 public class UserServiceTest extends GuiceContextTestBase {
     protected Logger logger = LoggerFactory.getLogger(this.getClass().getName());
@@ -161,3 +162,4 @@ public class UserServiceTest extends GuiceContextTestBase {
     }
 
 }
+*/

@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.mongo.MongoClientDeleteResult;
+import io.vertx.ext.web.Session;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.BidiMap;
@@ -92,7 +93,7 @@ public class UserServiceImpl implements UserService {
     /**
      * 登录时产生对照关系。
      * 对照关系：(token, userOpenID)。
-     */
+     */    
     private BidiMap<String, String> tokenWithUser;
 
     public UserServiceImpl() {
@@ -509,13 +510,19 @@ public class UserServiceImpl implements UserService {
 
         ListIterator<AuthUser> itr = users.listIterator();
 
-        //对密码解密
-        password = getPlainText(password);
+        //对密码解密,获取明文
+        String plainTxt = getPlainText(password);
 
         //分别验证各个用户
         while (itr.hasNext()) {
             AuthUser user = itr.next();
-            boolean matched = passwordEncryptor.checkPassword(password, user.getPassword());
+            String dbPwd = user.getPassword();
+            if(plainTxt.equals(dbPwd)){
+            	loginUser = user;
+                break;
+            }
+            //使用SHA-256哈希摘要算法将明文进行哈希计算，并与数据存储的哈希密文进行比较
+            boolean matched = passwordEncryptor.checkPassword(plainTxt, dbPwd);
 
             if (matched) {
                 loginUser = user;
@@ -549,6 +556,11 @@ public class UserServiceImpl implements UserService {
         stayOnline(loginUser, sessionId, userOpenId, token, onlineFuture);
         onlineFuture.setHandler(onlineRet -> {
             if (onlineRet.succeeded()) {
+            	
+            	//生成session
+/*            	Session session = sessionService.createSession();
+            	session.put(key, obj)*/
+            	
                 future.complete(reply);
             } else {
                 future.fail(onlineRet.cause());
@@ -730,7 +742,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(String userOpenId, Future<JsonObject> future) {
         String token = tokenWithUser.getKey(userOpenId);
-        sessionService.deleteById(token);
+        //sessionService.deleteById(token);
         tokenWithUser.remove(token);
 
         JsonObject reply = new JsonObject();

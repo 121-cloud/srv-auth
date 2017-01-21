@@ -33,7 +33,8 @@ public class LoginCommand extends DefaultOtoCommand {
 
         String sessionId = context.get("sessionId").toString();
 
-        logger.info("AuthService - 登录时的SessionID是: " + sessionId);
+        logger.info("AuthService - 登录时的SessionID是: " + sessionId);       
+        
 
         try {
             if (StringUtils.isBlank(userName)) {
@@ -46,6 +47,10 @@ public class LoginCommand extends DefaultOtoCommand {
 
         } catch (ConstraintViolationException e) {
             String errMsg = ViolationMessageBuilder.build(e);
+            future.fail(errMsg);
+        } catch (Exception ex) {
+        	ex.printStackTrace();
+            String errMsg = ex.getMessage();
             future.fail(errMsg);
         }
     }

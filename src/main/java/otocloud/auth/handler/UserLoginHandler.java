@@ -94,7 +94,7 @@ public class UserLoginHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         }
 
         CommandContext context = new CommandContext();
-        JsonObject data = loginInfo.getJsonObject("content");
+        JsonObject data = loginInfo.getJsonObject("content");        
         context.put("data", data);
         context.put("sessionId", loginInfo.getJsonObject("session").getString("id"));
         Future<JsonObject> future = Future.future();
@@ -113,10 +113,13 @@ public class UserLoginHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                 reply.remove(USER_ID);
 
                 JsonObject session = loginInfo.getJsonObject("session");
+                if(session == null)
+                	session = new JsonObject();
                 session.put(ACCT_ID, acctId);
                 session.put(USER_ID, userId);
 
-                reply.put("session", session);
+                reply.put("session", session);                
+                
 
                 if(logger.isInfoEnabled()){
                     logger.info("返回用户登录结果.");

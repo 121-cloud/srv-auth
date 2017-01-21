@@ -1,4 +1,4 @@
-package otocloud.auth.verticle;
+/*package otocloud.auth.verticle;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
@@ -41,9 +41,9 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 
-/**
+*//**
  * Created by zhangye on 2015-10-14.
- */
+ *//*
 @RunWith(VertxUnitRunner.class)
 public class AuthServiceIT {
 
@@ -106,11 +106,11 @@ public class AuthServiceIT {
     }
 
 
-    /**
+    *//**
      * 测试Session的应用
      *
      * @param complete
-     */
+     *//*
     private void startApp(Future<Void> complete) {
         String realAddress = "address.real";
 
@@ -216,10 +216,10 @@ public class AuthServiceIT {
 
     }
 
-    /**
+    *//**
      * 不需要登录,通过后台接口直接创建用户.
      * @param context
-     */
+     *//*
     @Test
     public void it_should_create_an_user_by_eventbus(TestContext context) {
         final Async async = context.async();
@@ -528,3 +528,4 @@ public class AuthServiceIT {
     }
 
 }
+*/

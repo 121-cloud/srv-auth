@@ -1,0 +1,23 @@
+1、创建用户
+http://localhost:8088/otocloud-auth/user-management/users/operators
+POST
+{
+	session：{
+	  userId：lj，
+	  acctId: 4
+	}
+	body: {
+		user_name: 用户名	
+		cell_no: 电话
+		email: 邮箱
+	
+	}
+}
+2、login
+http://localhost:8084/api/otocloud-auth/user-management/users/actions/login
+POST
+{
+	"userName": "lj",
+	"password": "*123"
+
+}

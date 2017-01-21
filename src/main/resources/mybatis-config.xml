@@ -27,10 +27,10 @@
             <dataSource type="otocloud.auth.mybatis.HikariDataSourceFactory">
                 <!--<property name="driverClassName" value="com.mysql.jdbc.Driver" />-->
                 <!--&amp;allowMultiQueries=true-->
-                <property name="jdbcUrl" value="jdbc:mysql://10.10.23.112:3306/121db_new?autoReconnect=true"/>
+                <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/121db_new?autoReconnect=true"/>
                 <!--<property name="url" value="jdbc:mysql://localhost:3306/121db_new?autoReconnect=true&amp;allowMultiQueries=true" />-->
-                <property name="username" value="test"/>
-                <property name="password" value="test"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
                 <!--<property name="maxLifetime" value="14"/>-->
                 <property name="maximumPoolSize" value="5"/>
             </dataSource>

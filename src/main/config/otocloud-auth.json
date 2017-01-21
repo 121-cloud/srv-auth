@@ -1,55 +1,38 @@
 {
-  "main": "otocloud.auth.verticle.AuthService",
-  "options": {
-    "config": {
-      "service_name": "otocloud-auth",
-      "run_webserver": true,
-	  "webserver_config": {
-			"webserver_port": 8088,
-			"eventbus_enabled": true,
-			"static_res_service": true,
-			"delivery_options": {
-				"timeout": 60000
-			}
-	  },
-      "api_register_server": {
-        //"webserver_name": "121webserver-N01"
-      },
-      "mongo_client": {
-        "host": "127.0.0.1",
-        "port": 27017,
-        "maxPoolSize": 50,
-        "minPoolSize": 25,
-        "maxIdleTimeMS": 300000,
-        "maxLifeTimeMS": 3600000,
-        "waitQueueMultiple": 10,
-        "waitQueueTimeoutMS": 10000,
-        "maintenanceFrequencyMS": 2000,
-        "maintenanceInitialDelayMS": 500
-      },
-      "sys_datasource": {
-        "sharedpool": "jdbc-psc",
-        "config": {
-          "url": "jdbc:mysql://localhost:3306/121db_new?useUnicode=true&characterEncoding=UTF-8",
-          "driver_class": "com.mysql.jdbc.Driver",
-          "max_pool_size": 30,
-          "max_idle_time": 14400,
-          "user": "test",
-          "password": "test"
-        }
-      },
-      "component_deployment": [
-      ],
-      "component_common": {
-      },
-      "component_config": {
-        "account-registry": {
-          "options": {
-            "config": {
-            }
-          }
-        }
-      }
-    }
-  }
+  	"main": "otocloud.auth.verticle.AuthService",
+	"options": {
+		"config": {
+			"mongo_client": {
+				"host": "127.0.0.1",
+				"port": 27017
+			},		
+			"sys_datasource": {
+				"config": {
+					"max_pool_size": 30,
+					"user": "root",
+					"password": "root",
+					"driver_class": "com.mysql.jdbc.Driver",
+					"url": "jdbc:mysql://127.0.0.1:3306/121db_new?useUnicode=true&characterEncoding=UTF-8"
+				},
+				"sharedpool": "jdbc-psc"
+			},
+			"component_common": {
+				
+			},
+			"service_name": "otocloud-auth",
+			"component_config": {
+				"account-registry": {
+					"options": {
+						"config": {
+							
+						}
+					}
+				}
+			},
+			"api_register_server": {
+				"webserver_name": "121webserver-N01"
+			},
+			"component_deployment": []
+		}
+	}
 }

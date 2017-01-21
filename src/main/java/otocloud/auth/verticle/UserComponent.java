@@ -72,7 +72,10 @@ public class UserComponent extends OtoCloudComponentImpl {
         List<OtoCloudEventHandlerRegistry> ret = new ArrayList<OtoCloudEventHandlerRegistry>();
 
         ret.add(userRegisterHandler);
+        
+        //UserLoginHandler userLoginHandler = new UserLoginHandler(this);
         ret.add(userLoginHandler);
+        
         ret.add(userLogoutHandler);
         ret.add(userUpdateHandler);
         ret.add(userDeleteHandler);
