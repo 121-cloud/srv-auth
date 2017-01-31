@@ -1,19 +1,19 @@
-package otocloud.auth.command;
+/*package otocloud.auth.command;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
 import otocloud.auth.base.GuiceContextTestBase;
-import otocloud.auth.common.framework.CommandContext;
+import otocloud.auth.command.framework.CommandContext;
 import otocloud.auth.service.UserService;
 
 import javax.validation.ConstraintViolationException;
 import java.util.concurrent.CountDownLatch;
 
-/**
+*//**
  * Created by zhangye on 2015-10-10.
- */
+ *//*
 public class AddUserCommandTest extends GuiceContextTestBase{
 //    AnnotationConfigApplicationContext ctx;
 
@@ -111,3 +111,4 @@ public class AddUserCommandTest extends GuiceContextTestBase{
         });
     }
 }
+*/

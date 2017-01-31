@@ -1,14 +1,9 @@
 package otocloud.auth.handler;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import otocloud.auth.command.DeleteUserCommand;
-import otocloud.auth.common.exception.ErrCode;
-import otocloud.auth.common.framework.CommandContext;
-import otocloud.auth.common.util.BusMessageChecker;
+import otocloud.auth.dao.UserDAO;
 import otocloud.auth.verticle.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.framework.core.HandlerDescriptor;
@@ -21,40 +16,43 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  */
 public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
-    @Inject
-    private DeleteUserCommand deleteUserCommand;
-
-    @Inject
-    public UserDeleteHandler(@Named("UserComponent") OtoCloudComponentImpl componentImpl) {
+    public UserDeleteHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 
+    /* 
+     * { 
+     * 	  id: 
+     * }
+     * 
+     */
     @Override
     public void handle(OtoCloudBusMessage<JsonObject> msg) {
-        boolean isLegal = BusMessageChecker.checkDeleteUserInfo(msg.body(), errMsg -> {
+/*        boolean isLegal = BusMessageChecker.checkDeleteUserInfo(msg.body(), errMsg -> {
             msg.fail(ErrCode.BUS_MSG_FORMAT_ERR.getCode(), errMsg);
         });
 
         if (!isLegal) {
             return;
-        }
+        }*/
 
-        JsonObject body = msg.body();
-
-        JsonObject queryParams = body.getJsonObject("queryParams");
-        String openid = queryParams.getString(DeleteUserCommand.USER_ID);
-
-        CommandContext context = new CommandContext();
-        context.put("data", new JsonObject().put(DeleteUserCommand.USER_ID, Integer.valueOf(openid)));
-
-        Future<JsonObject> future = Future.future();
-        deleteUserCommand.executeFuture(context, future);
+        JsonObject content = msg.body().getJsonObject("content");
+    	
+    	Long userId = content.getLong("id", 0L);
+ 
+        Future<Boolean> future = Future.future();
+        
+        UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
+        userDAO.deleteById(userId, future);
 
         future.setHandler(ret -> {
             if (ret.succeeded()) {
                 msg.reply(ret.result());
             } else {
-                msg.fail(ErrCode.FAIL.getCode(), ret.cause().getMessage());
+            	Throwable errThrowable = ret.cause();
+    			String errMsgString = errThrowable.getMessage();
+    			this.componentImpl.getLogger().error(errMsgString, errThrowable);
+    			msg.fail(100, errMsgString);
             }
         });
     }
@@ -67,7 +65,7 @@ public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/:" + DeleteUserCommand.USER_ID, HttpMethod.DELETE);
+        ActionURI uri = new ActionURI("users/:user_id", HttpMethod.DELETE);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }

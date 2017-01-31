@@ -1,12 +1,12 @@
-package guice;
+/*package guice;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import ru.vyarus.guice.validator.ImplicitValidationModule;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-11-17.
- */
+ *//*
 public class BindingModule extends AbstractModule {
     OtherFun otherFun;
     DynamicSource dynamicSource;
@@ -38,3 +38,4 @@ public class BindingModule extends AbstractModule {
     }
 
 }
+*/

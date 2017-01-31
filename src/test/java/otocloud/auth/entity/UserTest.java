@@ -1,4 +1,4 @@
-package otocloud.auth.entity;
+/*package otocloud.auth.entity;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -8,13 +8,13 @@ import org.junit.Test;
 import javax.persistence.Column;
 import java.lang.reflect.Field;
 
-/**
+*//**
  * User Tester.
  *
  * @author <Authors name>
  * @version 1.0
  * @since <pre>九月 28, 2015</pre>
- */
+ *//*
 public class UserTest {
     User user;
 
@@ -67,3 +67,4 @@ public class UserTest {
 
 
 }
+*/

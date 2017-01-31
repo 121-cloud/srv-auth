@@ -1,10 +1,10 @@
-package guice.validation;
+/*package guice.validation;
 
 import com.google.inject.ImplementedBy;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-12-21.
- */
+ *//*
 
 public class ValidServiceImpl implements ValidService{
     @Override
@@ -17,3 +17,4 @@ public class ValidServiceImpl implements ValidService{
         System.out.println(a);
     }
 }
+*/

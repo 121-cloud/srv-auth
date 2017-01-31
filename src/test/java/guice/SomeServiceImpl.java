@@ -1,11 +1,11 @@
-package guice;
+/*package guice;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-10-28.
- */
+ *//*
 @Singleton
 public class SomeServiceImpl implements SomeService {
     @Inject
@@ -22,3 +22,4 @@ public class SomeServiceImpl implements SomeService {
         return false;
     }
 }
+*/

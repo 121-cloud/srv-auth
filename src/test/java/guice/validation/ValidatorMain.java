@@ -1,13 +1,13 @@
-package guice.validation;
+/*package guice.validation;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import javax.validation.constraints.NotNull;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-12-21.
- */
+ *//*
 public class ValidatorMain {
     private static Injector injector;
 
@@ -35,3 +35,4 @@ public class ValidatorMain {
         service.print(0);
     }
 }
+*/

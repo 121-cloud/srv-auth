@@ -1,25 +1,20 @@
 package otocloud.auth.verticle;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
-import otocloud.auth.common.util.GlobalDataPool;
-import otocloud.auth.common.util.ShareableUtil;
-import otocloud.auth.guice.BindingModule;
+import otocloud.auth.common.ShareableUtil;
 import otocloud.auth.handler.UserLoginHandler;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudComponent;
 import otocloud.framework.core.OtoCloudService;
 import otocloud.framework.core.OtoCloudServiceForVerticleImpl;
 import otocloud.framework.core.OtoCloudServiceImpl;
+import otocloud.persistence.dao.MongoDataSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,56 +28,27 @@ import java.util.List;
  * @see OtoCloudService
  */
 public class AuthService extends OtoCloudServiceForVerticleImpl {
-    protected static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-
-    private Injector injector;
-
-    //声明为类的字段,用于后续延迟加载数据源(框架提供的vertx数据源)
-    private BindingModule bindingModule;
-
-    //private Vertx vertx;
-
-    //private Context context;
-
-    //private JsonObject config;
     
+    private MongoDataSource authSrvMongoDataSource;
+    
+	public MongoDataSource getAuthSrvMongoDataSource() {
+		return authSrvMongoDataSource;
+	}
+
 	@Override
 	public void afterInit(Future<Void> initFuture) {		
         //如果有mongo_client配置,放入上下文当中.
         if (this.srvCfg.containsKey("mongo_client")) {
-            JsonObject mongo_client = this.srvCfg.getJsonObject("mongo_client");
-            GlobalDataPool.INSTANCE.put("mongo_client_at_auth_service", mongo_client);
+            JsonObject mongoClientCfg = this.srvCfg.getJsonObject("mongo_client");
+	        if(mongoClientCfg != null){
+	        	authSrvMongoDataSource = new MongoDataSource();
+	        	authSrvMongoDataSource.init(vertxInstance, mongoClientCfg);				
+	        }
         }
-
-        //添加Guice依赖注入
-        initGuiceInjector(this.vertxInstance);		
-        initOAuthService(this.vertxInstance);
         
-        super.afterInit(initFuture);
-        
+        super.afterInit(initFuture);        
 	}
 
-
-/*    @Override
-    public void init(Vertx vertx, Context context) {
-        this.vertx = vertx;
-        this.context = context;
-        this.config = context.config();
-
-        super.init(vertx, context);
-
-        //如果有mongo_client配置,放入上下文当中.
-        if (config.containsKey("mongo_client")) {
-            JsonObject mongo_client = config.getJsonObject("mongo_client");
-            GlobalDataPool.INSTANCE.put("mongo_client_at_auth_service", mongo_client);
-        }
-
-        //添加Guice依赖注入
-        initGuiceInjector(vertx);
-
-        //添加OAuth授权接口
-//        initOAuthService(vertx);
-    }*/
 
     /**
      * 在指定Vertx实例上添加授权接口.
@@ -92,7 +58,6 @@ public class AuthService extends OtoCloudServiceForVerticleImpl {
     private void initOAuthService(Vertx vertx) {
         //Context context = vertx.getOrCreateContext();
         Router mainRouter = ShareableUtil.getMainRouter(vertx);
-
 
         mainRouter.route(HttpMethod.GET, "/authorize").handler(routing -> {
             System.out.println("OAuthService, authorize");
@@ -107,33 +72,13 @@ public class AuthService extends OtoCloudServiceForVerticleImpl {
         });
     }
 
-    private void initGuiceInjector(Vertx vertx) {
-        bindingModule = new BindingModule();
-        bindingModule.setVertx(vertx);
-        bindingModule.setAuthService(this);
-
-//        ValidationModule validationModule = new ValidationModule();
-        injector = Guice.createInjector(bindingModule);
-//        try {
-//            injector = LifecycleInjector.builder()
-//                    .withBootstrapModule(validationModule)
-//                    .withModules(bindingModule)
-//                    .usingBasePackages("otocloud.auth")
-//                    .build().createInjector();
-//        }catch(Exception ignore){
-//            logger.info(ignore.getMessage());
-//        }
-
-    }
-
+ 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         Future<Void> authFuture = Future.future();
 
         authFuture.setHandler(result -> {
             if (result.succeeded()) {
-                //注入数据源
-                bindingModule.getDataSourceHolder().setJdbcDataSource(this.getSysDatasource());
 
                 //向Webserver发起请求,开启授权功能.
                 //turnOnAuthOnWebServer(startFuture);
@@ -145,8 +90,6 @@ public class AuthService extends OtoCloudServiceForVerticleImpl {
         });
 
         super.start(authFuture);
-
-        System.out.println(config()); //TODO 读取数据源配置
     }
 
 
@@ -214,10 +157,9 @@ public class AuthService extends OtoCloudServiceForVerticleImpl {
     public List<OtoCloudComponent> createServiceComponents() {
         List<OtoCloudComponent> retCloudComponents = new ArrayList<>();
 
-        retCloudComponents.add(injector.getInstance(UserComponent.class));
+        retCloudComponents.add(new UserComponent());
         //erp连接组件，暂时注销
         //retCloudComponents.add(new ErpConnectionComponent(this.injector));
-        retCloudComponents.add(new QueryComponent(this.injector));
 
         return retCloudComponents;
     }

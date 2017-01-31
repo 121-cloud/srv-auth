@@ -6,7 +6,7 @@ import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
-import otocloud.auth.common.util.ShareableUtil;
+import otocloud.auth.common.ShareableUtil;
 
 /**
  * zhangyef@yonyou.com on 2015-11-12.

@@ -1,11 +1,11 @@
-package guice;
+/*package guice;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-10-28.
- */
+ *//*
 public class Main {
     public static void main(String[] args){
         OtherFun fun = new OtherFun();
@@ -26,3 +26,4 @@ public class Main {
         someService.refresh();
     }
 }
+*/

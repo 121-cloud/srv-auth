@@ -1,10 +1,10 @@
-package jmock;
+/*package jmock;
 
 import com.google.inject.Inject;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-11-25.
- */
+ *//*
 public class MyServiceImpl implements MyService {
     @Inject
     private MyDAO myDAO;
@@ -14,3 +14,4 @@ public class MyServiceImpl implements MyService {
         return myDAO.getSum();
     }
 }
+*/

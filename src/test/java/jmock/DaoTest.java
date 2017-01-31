@@ -1,4 +1,4 @@
-package jmock;
+/*package jmock;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -11,9 +11,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-11-25.
- */
+ *//*
 //@RunWith(JMockit.class)
 public class DaoTest {
 
@@ -44,3 +44,4 @@ public class DaoTest {
         Assert.assertEquals(2, service.sum());
     }
 }
+*/

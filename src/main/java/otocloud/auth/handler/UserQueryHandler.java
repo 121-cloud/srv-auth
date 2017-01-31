@@ -1,19 +1,11 @@
 package otocloud.auth.handler;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import otocloud.auth.common.exception.ErrCode;
-import otocloud.auth.common.session.SessionSchema;
-import otocloud.auth.common.util.BusMessageChecker;
-import otocloud.auth.common.util.Mapper;
-import otocloud.auth.mybatis.entity.AuthUser;
-import otocloud.auth.service.UserService;
+import io.vertx.ext.sql.ResultSet;
+import otocloud.auth.common.SessionSchema;
+import otocloud.auth.dao.UserDAO;
 import otocloud.auth.verticle.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.framework.core.HandlerDescriptor;
@@ -28,71 +20,85 @@ import java.util.List;
  * zhangyef@yonyou.com on 2015-12-18.
  */
 public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
-    protected static final Logger logger = LoggerFactory.getLogger(UserQueryHandler.class);
+    //protected static final Logger logger = LoggerFactory.getLogger(UserQueryHandler.class);
 
-    @Inject
-    private UserService userService;
-
-    @Inject
-    private BusMessageChecker busMessageChecker;
-
-    @Inject
-    public UserQueryHandler(@Named("UserComponent") OtoCloudComponentImpl componentImpl) {
+    
+    public UserQueryHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
-
+    
+    /* 
+     * {
+     * 	  biz_unit_id: 业务单元ID
+     * 	  paging: {
+	 *	      sort_field: 排序字段，只支持单个字段,
+	 *	      sort_direction: 1：升序，-1：降序,
+	 *	      page_number: 页码,
+	 *	      page_size: 每页大小,
+	 *	      total: 总数，下次需要回传
+	 *	      total_page: 总页数，下次需要回传
+	 *	   }
+     * }
+     * 
+     */
     @Override
     public void handle(OtoCloudBusMessage<JsonObject> msg) {
-        logger.info("AuthService - 接收到了分页查询用户列表的请求.");
-
-        boolean isLegal = busMessageChecker.checkQueryUsersByPage(msg.body(), errMsg -> {
-            msg.fail(ErrCode.BUS_MSG_FORMAT_ERR.getCode(), errMsg);
-        });
-
-        if (!isLegal) {
-            return;
-        }
 
         JsonObject body = msg.body();
         JsonObject content = body.getJsonObject("content");
 
-        int page_index = content.getInteger("page_index");
-        int page_size = content.getInteger("page_size");
-
-        int department_id = content.getInteger("department_id");
+        //Long acctId = content.getLong("acct_id");
+        Long bizUnitId = content.getLong("biz_unit_id");
+        JsonObject pagingOptions = content.getJsonObject("paging");
+        Integer pageSize = pagingOptions.getInteger("page_size");
 
         JsonObject session = body.getJsonObject(SessionSchema.SESSION);
-        int acctId = session.getInteger(SessionSchema.ORG_ACCT_ID);
+        
+        Long acctId = session.getLong(SessionSchema.ORG_ACCT_ID);
 
-        Future<List<AuthUser>> pageFuture = Future.future();
-        userService.getUserListByPage(acctId, department_id, page_index, page_size, pageFuture);
+        Future<ResultSet> pageFuture = Future.future();
+
+        UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
+        userDAO.getUserListByPage(acctId, bizUnitId, pagingOptions, pageFuture);
 
         pageFuture.setHandler(ret -> {
             if (ret.failed()) {
                 msg.fail(4004, "查询的用户数据不存在,或无法查询用户的数据.");
-
                 return;
             }
+            
+            List<JsonObject> retDataArrays = ret.result().getRows();
+            
+            Future<Integer> countFuture = Future.future();
+            userDAO.countUser(acctId, bizUnitId, countFuture);
+            countFuture.setHandler(countUserRet -> {
+                if (countUserRet.failed()) {                   
+    				Throwable errThrowable = countUserRet.cause();
+    				String errMsgString = errThrowable.getMessage();
+    				this.componentImpl.getLogger().error(errMsgString, errThrowable);
+    				
+                    JsonObject reply = new JsonObject();
+                    reply.put("total_page", 1);                    
+                    reply.put("total", retDataArrays.size());
+                    reply.put("datas", retDataArrays);
+                    
+                    msg.reply(reply);
+                    
+                }else{
+                	Integer items_total_num = countUserRet.result();
+                    boolean oneMorePage = items_total_num % pageSize != 0;
 
-            int items_total_num = userService.countUser(acctId, department_id);
+                    JsonObject reply = new JsonObject();
+                    reply.put("total_page", items_total_num / pageSize + (oneMorePage ? 1 : 0));                    
+                    reply.put("total", items_total_num);
+                    reply.put("datas", retDataArrays);
+                    
+                    msg.reply(reply);
 
-            boolean oneMorePage = items_total_num % page_size != 0;
-
-            JsonObject reply = new JsonObject();
-            reply.put("page_num", items_total_num / page_size + (oneMorePage ? 1 : 0));
-            reply.put("page_index", page_index);
-            reply.put("items_total_num", items_total_num);
+                }
+            });
 
 
-            List<AuthUser> users = ret.result();
-            try {
-                JsonArray items_in_page = Mapper.toJsonArray(users);
-                reply.put("items_in_page", items_in_page);
-
-                msg.reply(reply);
-            } catch (Exception ignore) {
-                msg.fail(1, "内部数据格式转换错误。");
-            }
         });
     }
 

@@ -1,12 +1,8 @@
 package otocloud.auth.handler;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import otocloud.auth.service.UserService;
+import otocloud.auth.entity.UserOnlineSchema;
+import otocloud.auth.verticle.AuthService;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
@@ -19,46 +15,46 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  * zhangyef@yonyou.com on 2015-11-24.
  */
 public class TokenQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
-    protected static final Logger logger = LoggerFactory.getLogger(TokenQueryHandler.class);
-
-    @Inject
-    private UserService userService;
-
-    @Inject
-    public TokenQueryHandler(@Named("UserComponent") OtoCloudComponentImpl componentImpl) {
+	
+	private String USERS_ONLINE = "UsersOnline";
+	
+    public TokenQueryHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 
     @Override
     public void handle(OtoCloudBusMessage<JsonObject> msg) {
-        logger.info("AuthService - 收到信息查询请求.");
 
         JsonObject body = msg.body();
 
         JsonObject condition = body.getJsonObject("condition");
         String token = condition.getString("token");
 
-        logger.info("AuthService - 根据token查询SessionID, token:\"" + token + "\"");
-        Future<String> sessionFuture = Future.future();
+        this.componentImpl.getLogger().info("AuthService - 根据token查询SessionID, token:\"" + token + "\"");
 
-        userService.findSessionId(token, sessionFuture);
+        JsonObject query = new JsonObject();
+        query.put(UserOnlineSchema.TOKEN, token);
+        
+        AuthService authService = (AuthService)this.componentImpl.getService();
+        authService.getAuthSrvMongoDataSource().getMongoClient().findOne(USERS_ONLINE, query, new JsonObject(), ret -> {
+            if (ret.succeeded()) {
+                JsonObject found = ret.result();
 
-        sessionFuture.setHandler( ret -> {
-            if(ret.failed()){
-                msg.reply(new JsonObject().put("errCode", 1).put("errMsg", "无法找到SessionID."));
-                return;
+                String sessionId = found.getString(UserOnlineSchema.SESSION_ID);
+                this.componentImpl.getLogger().info("查找到的SessionID: " + sessionId);
+
+                JsonObject reply = new JsonObject();
+                reply.put("data", new JsonObject().put("session_id", sessionId));
+
+                msg.reply(reply);
+            } else {
+				Throwable errThrowable = ret.cause();
+				String errMsgString = errThrowable.getMessage();
+				this.componentImpl.getLogger().error("无法根据Token找到SessionID." + errMsgString, errThrowable);
+			
+            	msg.fail(400, "无法根据Token找到SessionID. 可能的原因是: 用户已经退出.");
             }
-
-            String sessionId = ret.result();
-
-            logger.info("AuthService - 查询到的SessionID是: " + sessionId);
-
-            JsonObject reply = new JsonObject();
-            reply.put("data", new JsonObject().put("session_id", sessionId));
-
-            msg.reply(reply);
         });
-
 
     }
 

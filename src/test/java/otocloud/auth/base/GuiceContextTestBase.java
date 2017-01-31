@@ -1,4 +1,4 @@
-package otocloud.auth.base;
+/*package otocloud.auth.base;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -9,9 +9,9 @@ import otocloud.auth.common.util.GlobalDataPool;
 import otocloud.auth.guice.BindingModule;
 import otocloud.persistence.dao.JdbcDataSource;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-11-23.
- */
+ *//*
 public class GuiceContextTestBase {
     protected Injector injector;
     protected Vertx vertx;
@@ -67,3 +67,4 @@ public class GuiceContextTestBase {
         return dataSource;
     }
 }
+*/

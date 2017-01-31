@@ -1,10 +1,10 @@
-package guice;
+/*package guice;
 
 import com.google.inject.Inject;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-10-28.
- */
+ *//*
 public class SomeDAO {
 
     @Inject
@@ -18,3 +18,4 @@ public class SomeDAO {
         return 0;
     }
 }
+*/

@@ -1,37 +1,43 @@
 package otocloud.auth.dao;
 
-import com.google.inject.Singleton;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
-import otocloud.auth.common.util.Mapper;
-import otocloud.auth.entity.User;
+import otocloud.persistence.dao.JdbcDataSource;
+import otocloud.persistence.dao.TransactionConnection;
 
 import java.util.List;
+
 
 /**
  * 操作用户表的持久层（auth_user表）。
  * <p>
  * Created by better/zhangye on 15/9/29.
  */
-@Singleton
-public class UserDAO extends OtoBaseDAO {
+public class UserDAO extends EntityDAO {
+	
+    public UserDAO(JdbcDataSource dataSource) {
+        super(dataSource);
+    }
 
-    public boolean create(User user, Future<User> future) {
+    public void create(JsonObject user, Future<JsonObject> future) {
 
         final String insertUserSQL = "INSERT INTO auth_user(" +
-                "org_acct_id, name, password, cell_no, email, status, entry_id, entry_datetime) " +
+                "name, password, cell_no, email, status, entry_id, entry_datetime) " +
                 "VALUES(?, ?, ?, ?, ?, ?, ?, now())";
         JsonArray params = new JsonArray();
-        params.add(user.getOrgAcctId());
-        params.add(user.getUserName());
-        params.add(user.getPassword());
-        params.add(user.getCellNo() == null ? "" : user.getCellNo());
-        params.add(user.getEmail() == null ? "" : user.getEmail());
+        //params.add(user.getOrgAcctId());
+        params.add(user.getString("name"));
+        params.add(user.getString("password"));
+        params.add(user.getString("cell_no", ""));
+        params.add(user.getString("email", ""));
         params.add("A"); //status
-        params.add(user.getEntryId()); //设置该记录的创建人
+        params.add(user.getLong("entry_id", 0L)); //设置该记录的创建人
 
         Future<UpdateResult> innerFuture = Future.future();
 
@@ -42,11 +48,10 @@ public class UserDAO extends OtoBaseDAO {
                 UpdateResult updateResult = result.result();
                 int num = updateResult.getUpdated();
 
-                Integer userId = updateResult.getKeys().getInteger(0);
-                User storedUser = user;
-                storedUser.setID(userId);
+                Long userId = updateResult.getKeys().getLong(0);
+                user.put("id", userId);
 
-                future.complete(storedUser);
+                future.complete(user);
 
                 logger.info("更新了" + num + "条记录.");
                 logger.info(updateResult.toJson());
@@ -55,46 +60,275 @@ public class UserDAO extends OtoBaseDAO {
                 logger.warn("AuthService 无法增加新用户." + result.cause().getMessage());
             }
         });
-
-
-        return true;
     }
+    
+    
+    public void create(JsonObject user, Long acctId, Long bizUnitId, Long postId, Future<JsonObject> future) {
 
+        final String insertUserSQL = "INSERT INTO auth_user(" +
+                "name, password, cell_no, email, status, entry_id, entry_datetime) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, now())";
+        JsonArray params = new JsonArray();
+        //params.add(user.getOrgAcctId());
+        params.add(user.getString("name"));
+        params.add(user.getString("password"));
+        params.add(user.getString("cell_no", ""));
+        params.add(user.getString("email", ""));
+        params.add("A"); //status
+        Long entryId = user.getLong("entry_id", 0L);
+        params.add(entryId); //设置该记录的创建人
+
+		JDBCClient jdbcClient = this.getDataSource().getSqlClient();
+		jdbcClient.getConnection(conRes -> {
+			if (conRes.succeeded()) {				
+				SQLConnection conn = conRes.result();        
+		        TransactionConnection.createTransactionConnection(conn, transConnRet->{
+					if(transConnRet.succeeded()){
+						TransactionConnection transConn = transConnRet.result();
+						
+						Future<UpdateResult> innerFuture = Future.future();					
+						
+				        updateWithParams(transConn, insertUserSQL, params, innerFuture);
+				        
+				        innerFuture.setHandler(result -> {
+				            if (result.succeeded()) {
+				                UpdateResult updateResult = result.result();
+				                int num = updateResult.getUpdated();
+				                
+				                Long userId = updateResult.getKeys().getLong(0);				                
+				                user.put("id", userId);
+				                
+				                logger.info("更新了" + num + "条记录.");
+				                logger.info(updateResult.toJson());		
+				                
+				                Future<UpdateResult> addAcctPostfuture = Future.future();		
+				                
+				                addAcctPost(transConn, acctId, bizUnitId, postId, userId, entryId, addAcctPostfuture);
+				                
+				                addAcctPostfuture.setHandler(addAcctPostRet -> {
+						            if (addAcctPostRet.succeeded()) {
+				                    	transConn.commitAndClose(closedRet->{
+				                    		future.complete(user);
+				                    	});
+						            }else{						            	
+						            	Throwable err = addAcctPostRet.cause();
+						                future.fail(err);
+						                logger.error("AuthService 无法增加新用户.事务回滚" + err.getMessage());
+										transConn.rollbackAndClose(closedRet->{												
+											future.fail(err);
+										});	
+						            }
+				                });			                
+
+				            } else {		
+				            	Throwable err = result.cause();
+				                future.fail(err);
+				                logger.error("AuthService 无法增加新用户.事务回滚" + err.getMessage());
+								transConn.rollbackAndClose(closedRet->{												
+									future.fail(err);
+								});	
+				            }
+				        });
+						
+						
+						
+					}else{
+						Throwable err = transConnRet.cause();
+						String errMsg = err.getMessage();
+						logger.error(errMsg, err);	
+						conn.close(closedRet->{
+							future.fail(err);
+						});	
+					}
+		        });
+			}else{
+				Throwable err = conRes.cause();
+            	future.fail(err);
+                logger.error("连接打开失败。" + err.getMessage());
+		    }
+		});
+
+    }
+    
+    
+    private void addAcctPost(TransactionConnection transConn, Long acctId, Long bizUnitId, Long postId, Long userId, Long operatorId, Future<UpdateResult> future) {
+    	
+        final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, status, entry_id, entry_datetime) " +
+                "VALUES(?, ?, 'A', ?, now())" +
+        		"ON DUPLICATE KEY UPDATE auth_user_id=?,acct_id=?";
+        JsonArray params = new JsonArray();
+        params.add(userId);
+        params.add(acctId);
+        params.add(operatorId);
+        params.add(userId);
+        params.add(acctId); 
+
+        Future<UpdateResult> innerFuture = Future.future();
+
+        updateWithParams(transConn, insertAcctSQL, params, innerFuture);
+        
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+                UpdateResult updateResult = result.result();
+                int num = updateResult.getUpdated();
+                logger.info("更新了" + num + "条记录.");
+                logger.info(updateResult.toJson());
+
+                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, acct_biz_unit_post_id, status, entry_id, entry_datetime) " +
+                        "VALUES(?, ?, ?, ?, 'A', ?, now())";
+                JsonArray params2 = new JsonArray();
+                params2.add(userId);
+                params2.add(acctId);                
+                params2.add(bizUnitId);
+                params2.add(postId);                
+                params2.add(operatorId);
+
+                Future<UpdateResult> innerFuture2 = Future.future();
+
+                updateWithParams(transConn, insertPostSQL, params2, innerFuture2);
+                
+                innerFuture2.setHandler(result2 -> {
+                    if (result2.succeeded()) {
+                    	future.complete(result2.result());
+                    }else{
+                    	future.fail(result2.cause());
+                        logger.warn("AuthService 无法增加新用户角色." + result2.cause().getMessage());
+                    }}
+                );
+            } else {
+                future.fail(result.cause());
+                logger.warn("AuthService 无法增加新用户角色." + result.cause().getMessage());
+            }
+        });
+    }
+    
+    
     /**
-     * 将参数中的值与数据库中的值合并，如果参数中user的字段为空，则不覆盖数据库中的值。
-     * 如果不为空，则覆盖数据库中的值。
-     *
-     * @param user   带有指定的id。
+     * 带内部事务的添加岗位角色方法
+     * @param acctId
+     * @param bizUnitId
+     * @param postId
+     * @param userId
+     * @param operatorId
      * @param future
      */
-    public void merge(User user, Future<User> future) {
-        update(user, future, true);
+    public void addAcctPost(Long acctId, Long bizUnitId, Long postId, Long userId, Long operatorId, Future<UpdateResult> future) {
+    	
+        final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, status, entry_id, entry_datetime) " +
+                "VALUES(?, ?, 'A', ?, now())" +
+        		"ON DUPLICATE KEY UPDATE auth_user_id=?,acct_id=?";
+        JsonArray params = new JsonArray();
+        params.add(userId);
+        params.add(acctId);
+        params.add(operatorId);
+        params.add(userId);
+        params.add(acctId);         
+        
+		JDBCClient jdbcClient = this.getDataSource().getSqlClient();
+		jdbcClient.getConnection(conRes -> {
+			if (conRes.succeeded()) {				
+				SQLConnection conn = conRes.result();        
+		        TransactionConnection.createTransactionConnection(conn, transConnRet->{
+					if(transConnRet.succeeded()){
+						TransactionConnection transConn = transConnRet.result();
+						
+						Future<UpdateResult> innerFuture = Future.future();					
+						
+				        updateWithParams(transConn, insertAcctSQL, params, innerFuture);
+				        
+				        innerFuture.setHandler(result -> {
+				            if (result.succeeded()) {
+				                UpdateResult updateResult = result.result();
+				                int num = updateResult.getUpdated();
+				                logger.info("更新了" + num + "条记录.");
+				                logger.info(updateResult.toJson());
+
+				                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, acct_biz_unit_post_id, status, entry_id, entry_datetime) " +
+				                        "VALUES(?, ?, ?, ?, 'A', ?, now())";
+				                JsonArray params2 = new JsonArray();
+				                params2.add(userId);
+				                params2.add(acctId);                
+				                params2.add(bizUnitId);
+				                params2.add(postId);                
+				                params2.add(operatorId);
+
+				                Future<UpdateResult> innerFuture2 = Future.future();
+
+				                updateWithParams(insertPostSQL, params2, innerFuture2);
+				                
+				                innerFuture2.setHandler(result2 -> {
+				                    if (result2.succeeded()) {
+				                    	transConn.commitAndClose(closedRet->{
+				                    		future.complete(result2.result());
+				                    	});
+				                    }else{
+						            	Throwable err = result2.cause();
+						                future.fail(err);
+						                logger.error("AuthService 无法增加新用户角色.事务回滚" + err.getMessage());
+										transConn.rollbackAndClose(closedRet->{												
+											future.fail(err);
+										});
+				                    }}
+				                );
+				            } else {		
+				            	Throwable err = result.cause();
+				                future.fail(err);
+				                logger.error("AuthService 无法增加新用户角色.事务回滚" + err.getMessage());
+								transConn.rollbackAndClose(closedRet->{												
+									future.fail(err);
+								});	
+				            }
+				        });
+						
+						
+						
+					}else{
+						Throwable err = transConnRet.cause();
+						String errMsg = err.getMessage();
+						logger.error(errMsg, err);	
+						conn.close(closedRet->{
+							future.fail(err);
+						});	
+					}
+		        });
+			}else{
+				Throwable err = conRes.cause();
+            	future.fail(err);
+                logger.error("连接打开失败。" + err.getMessage());
+		    }
+		});
+
     }
 
-    public void update(User user, Future<User> future) {
-        update(user, future, false);
-    }
 
-    /**
-     * 使用传递的参数进行数据更新。
-     * <p>
-     * 只存储被@Column注解标记的属性。
-     *
-     * @param user   新的用户数据
-     * @param future 返回更新后的用户数据
-     * @param merge  true, 表示将新的数据合并到原有记录中；false, 表示用新的数据替换原有记录。
-     * @see OtoBaseDAO#mapToSetClause(java.lang.Object, boolean)
-     */
-    public void update(User user, Future<User> future, boolean merge) {
+
+    public void update(Long userId, String name, String cell_no, String email, Future<UpdateResult> future) {
         JsonArray params = new JsonArray();
 
-        String setClause = mapToSetClause(user, merge);
+        String setClause = "";
+        if(name != null && !name.trim().isEmpty()){
+        	setClause = "name=?";
+        	params.add(name);
+        }
+        if(cell_no != null && !cell_no.trim().isEmpty()){
+        	if(setClause.trim().isEmpty())
+        		setClause = "cell_no=?";
+        	else
+        		setClause += ",cell_no=?";
+        	params.add(cell_no);
+        }
+        if(email != null && !email.trim().isEmpty()){
+        	if(setClause.trim().isEmpty())
+        		setClause = "email=?";
+        	else
+        		setClause += ",email=?";
+        	params.add(email);
+        }
 
         final String updateSQL = "UPDATE auth_user"
                 + " SET " + setClause
                 + " WHERE id=?";
-
-        params.add(user.getID());
+        params.add(userId);
 
         Future<UpdateResult> innerFuture = Future.future();
 
@@ -103,8 +337,8 @@ public class UserDAO extends OtoBaseDAO {
         innerFuture.setHandler(result -> {
             if (result.succeeded()) {
                 UpdateResult updateResult = result.result();
-                System.out.println(updateResult.toJson());
-                future.complete(user);
+                //System.out.println(updateResult.toJson());
+                future.complete(updateResult);
             } else {
                 future.fail(result.cause());
                 logger.warn("用户信息无法更改。");
@@ -148,7 +382,7 @@ public class UserDAO extends OtoBaseDAO {
             builder.append("=");
             builder.append("?");
 
-            params.add(value instanceof Integer ? Integer.parseInt(value.toString()) : value);
+            params.add(value instanceof Long ? Long.parseLong(value.toString()) : value);
         });
 
         Future<UpdateResult> innerFuture = Future.future();
@@ -177,7 +411,7 @@ public class UserDAO extends OtoBaseDAO {
      * @param userId 用户ID.
      * @param future 删除成功后回调.
      */
-    public void deleteById(int userId, Future<Boolean> future) {
+    public void deleteById(Long userId, Future<Boolean> future) {
         Future<UpdateResult> updateResultFuture = Future.future();
 
         deleteBy(new JsonObject().put("id", userId), updateResultFuture);
@@ -199,38 +433,13 @@ public class UserDAO extends OtoBaseDAO {
      * @param id     用户ID.
      * @param future 返回User对象.
      */
-    public void findById(int id, Future<User> future) {
-        Future<ResultSet> innerFuture = Future.future();
-
+    public void findById(int id, Future<ResultSet> future) {
         queryBy("auth_user", new String[]{"id", "org_acct_id", "org_dept_id", "name", "cell_no", "email"}, new
-                JsonObject().put("id", id), innerFuture);
-        addResultHandler(future, innerFuture);
+                JsonObject().put("id", id), future);
 
     }
 
-    private void addResultHandler(Future<User> future, Future<ResultSet> innerFuture) {
-        innerFuture.setHandler(result -> {
-            if (result.succeeded()) {
-                ResultSet resultSet = result.result();
-                //如果没有找到用户，说明用户名和密码错误，或用户不存在。
-                if (resultSet.getNumRows() == 0) {
-                    future.complete();
-                    return;
-                }
-
-                List<User> users = Mapper.mapToEntity(resultSet, User.class);
-
-                if (users == null) {
-                    future.complete();
-                } else {
-                    future.complete(users.get(0));
-                }
-
-            } else {
-                future.fail(result.cause());
-            }
-        });
-    }
+ 
 
     /**
      * 根据用户名和密码判断用户是否存在。
@@ -239,14 +448,12 @@ public class UserDAO extends OtoBaseDAO {
      * @param password 密码
      * @return User(id, org_acct_id, name)
      */
-    public void findBy(String userName, String password, Future<User> future) {
-        Future<ResultSet> innerFuture = Future.future();
+    public void findBy(String userName, String password, Future<ResultSet> future) {
 
         queryBy("auth_user", new String[]{"id", "org_acct_id", "name"},
                 new JsonObject().put("name", userName).put("password", password),
-                innerFuture);
+                future);
 
-        addResultHandler(future, innerFuture);
     }
 
     /**
@@ -256,13 +463,188 @@ public class UserDAO extends OtoBaseDAO {
      * @param password 密码
      * @param future   如果无法找到用户,返回null; 如果找到用户, 则返回User实体对象.
      */
-    public void findByCellNo(String cellNo, String password, Future<User> future) {
-        Future<ResultSet> innerFuture = Future.future();
+    public void findByCellNo(String cellNo, String password, Future<ResultSet> future) {
 
         queryBy("auth_user", new String[]{"id", "org_acct_id", "name"},
                 new JsonObject().put("cell_no", cellNo).put("password", password),
-                innerFuture);
-
-        addResultHandler(future, innerFuture);
+                future);
     }
+    
+    public void isRegisteredCellNo(String cellNo, Future<Boolean> future) {
+             
+        final String sql = "SELECT count(id) FROM auth_user WHERE cell_no=?";
+        JsonArray params = new JsonArray();
+        params.add(cellNo);
+
+        Future<ResultSet> innerFuture = Future.future();
+
+        this.queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	if(retDataArrays != null && retDataArrays.size() > 0){
+            		future.complete(true);
+            	}else{
+            		future.complete(false);
+            	}
+
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
+
+    public void countUser(Long acctId, Long bizUnitId, Future<Integer> future) {
+        
+        final String sql = "SELECT count(id) as total_num FROM view_acct_user_post where acct_id=? and d_acct_biz_unit_id=?";
+        JsonArray params = new JsonArray();
+        params.add(acctId);
+        params.add(bizUnitId);
+
+        Future<ResultSet> innerFuture = Future.future();
+
+        queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	Integer totalNum = retDataArrays.get(0).getInteger("total_num");
+            	future.complete(totalNum);
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
+    
+    public void getUserListByPage(Long acctId, Long bizUnitId, JsonObject pagingOptions, Future<ResultSet> future) {
+       
+    	String sortField = pagingOptions.getString("sort_field");
+    	Integer sortDirection = pagingOptions.getInteger("sort_direction");
+    	String sortStr = (sortDirection==1)?"ASC":"DESC";    
+    	
+        int pageNo = pagingOptions.getInteger("page_number");
+        int pageSize = pagingOptions.getInteger("page_size");
+        int startIndex = (pageNo-1) * pageSize;
+       
+	   final String sql = "SELECT * FROM view_acct_user_post where acct_id=? and d_acct_biz_unit_id=? order by " +
+			   sortField + " " + sortStr + " limit ?,?";
+	   JsonArray params = new JsonArray();
+	   params.add(acctId);
+	   params.add(bizUnitId);
+	   params.add(startIndex);
+	   params.add(pageSize);
+	
+	   Future<ResultSet> innerFuture = Future.future();
+	
+	   this.queryWithParams(sql, params, innerFuture);
+	
+	   innerFuture.setHandler(result -> {
+	       if (result.succeeded()) {
+		       	ResultSet resultSet = result.result();
+		       	future.complete(resultSet);	
+	       } else {
+	       		Throwable err = result.cause();								
+	            future.fail(err);                
+	       }
+	   });    	
+    	
+    }
+    
+    public void getBizUnitList(Long acctId, Future<ResultSet> future) {
+       
+	   final String sql = "SELECT * FROM view_acct_biz_unit where acct_id=?";
+	   JsonArray params = new JsonArray();
+	   params.add(acctId);
+	
+	   Future<ResultSet> innerFuture = Future.future();
+	
+	   this.queryWithParams(sql, params, innerFuture);
+	
+	   innerFuture.setHandler(result -> {
+	       if (result.succeeded()) {
+		       	ResultSet resultSet = result.result();
+		       	future.complete(resultSet);	
+	       } else {
+	       		Throwable err = result.cause();								
+	            future.fail(err);                
+	       }
+	   });    	
+    	
+    }
+    
+    
+    public void getUserByName(String userName, Future<ResultSet> future) {
+        
+	   final String sql = "SELECT id,name,cell_no,email,password FROM auth_user where name=? AND status='A'";
+	   JsonArray params = new JsonArray();
+	   params.add(userName);
+	
+	   Future<ResultSet> innerFuture = Future.future();
+	
+	   this.queryWithParams(sql, params, innerFuture);
+	
+	   innerFuture.setHandler(result -> {
+	       if (result.succeeded()) {
+		       	ResultSet resultSet = result.result();
+		       	future.complete(resultSet);	
+	       } else {
+	       		Throwable err = result.cause();								
+	            future.fail(err);                
+	       }
+	   });    	
+    	
+    }
+    
+    public void getUserByCellNo(String cellNo, Future<ResultSet> future) {
+        
+	   final String sql = "SELECT id,name,cell_no,email,password FROM auth_user where cell_no=? AND status='A'";
+	   JsonArray params = new JsonArray();
+	   params.add(cellNo);
+	
+	   Future<ResultSet> innerFuture = Future.future();
+	
+	   this.queryWithParams(sql, params, innerFuture);
+	
+	   innerFuture.setHandler(result -> {
+	       if (result.succeeded()) {
+		       	ResultSet resultSet = result.result();
+		       	future.complete(resultSet);	
+	       } else {
+	       		Throwable err = result.cause();								
+	            future.fail(err);                
+	       }
+	   });    	
+    	
+    }
+    
+    
+    public void getUserAccts(Long userId, Future<ResultSet> future) {
+       
+	   final String sql = "SELECT * FROM view_acct_user where auth_user_id=?";
+	   JsonArray params = new JsonArray();
+	   params.add(userId);
+	
+	   Future<ResultSet> innerFuture = Future.future();
+	
+	   this.queryWithParams(sql, params, innerFuture);
+	
+	   innerFuture.setHandler(result -> {
+	       if (result.succeeded()) {
+		       	ResultSet resultSet = result.result();
+		       	future.complete(resultSet);	
+	       } else {
+	       		Throwable err = result.cause();								
+	            future.fail(err);                
+	       }
+	   });    	
+    	
+    }
+    
 }

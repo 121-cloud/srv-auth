@@ -1,14 +1,8 @@
 package otocloud.auth.handler;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import otocloud.auth.command.LogoutCommand;
-import otocloud.auth.common.exception.ErrCode;
-import otocloud.auth.common.framework.CommandContext;
-import otocloud.auth.common.util.BusMessageChecker;
+import otocloud.auth.verticle.AuthService;
 import otocloud.auth.verticle.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.framework.core.HandlerDescriptor;
@@ -22,38 +16,36 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  */
 public class UserLogoutHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
-    @Inject
-    private LogoutCommand logoutCommand;
-
-    @Inject
-    public UserLogoutHandler(@Named("UserComponent") OtoCloudComponentImpl componentImpl) {
+    
+    public UserLogoutHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 
     @Override
     public void handle(OtoCloudBusMessage<JsonObject> msg) {
-        boolean isLegal = BusMessageChecker.checkLoginInfo(msg.body(), errMsg -> {
-            msg.fail(ErrCode.BUS_MSG_FORMAT_ERR.getCode(), errMsg);
-        });
-
-        if (!isLegal) {
-            return;
-        }
-
-        JsonObject loginInfo = msg.body();
-        CommandContext context = new CommandContext();
-        context.put("data", loginInfo.getJsonObject("content"));
-        Future<JsonObject> future = Future.future();
-        logoutCommand.executeFuture(context, future);
-
-        future.setHandler(ret -> {
-            if (ret.succeeded()) {
-                msg.reply(ret.result());
-            } else {
-                msg.fail(1, ret.cause().getMessage());
+    	
+    	JsonObject loginInfo = msg.body();         
+        JsonObject session = loginInfo.getJsonObject("session");
+		Long userId = session.getLong("user_id");
+       
+		JsonObject query = new JsonObject().put("user_id", userId);
+        
+        AuthService authService = (AuthService)this.componentImpl.getService();
+        authService.getAuthSrvMongoDataSource().getMongoClient().removeDocument("UsersOnline", query, resultHandler->{
+            if(resultHandler.failed()){                                    
+				Throwable errThrowable = resultHandler.cause();
+				String errMsgString = errThrowable.getMessage();
+				this.componentImpl.getLogger().error(errMsgString, errThrowable);
+				msg.fail(100, errMsgString);
+            }else{
+            	msg.reply(resultHandler.result().toJson());
             }
         });
+
     }
+    
+
+    /**
 
     /**
      * 事件总线上注册的最终地址是："服务名".user-management.users.logout

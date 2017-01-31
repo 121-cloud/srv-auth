@@ -1,17 +1,11 @@
 package otocloud.auth.handler;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import otocloud.auth.common.exception.ErrCode;
-import otocloud.auth.common.util.BusMessageChecker;
-import otocloud.auth.entity.ReplyMessage;
-import otocloud.auth.service.UserService;
+import otocloud.auth.dao.UserDAO;
 import otocloud.auth.verticle.UserComponent;
 import otocloud.common.ActionURI;
-import otocloud.common.webserver.MessageBodyConvention;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
@@ -24,41 +18,50 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  */
 public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
-    public static final String CELL_NO = "cellNo";
-
-    @Inject
-    private UserService userService;
-
-    @Inject
-    public CellNoQueryHandler(@Named("UserComponent") OtoCloudComponentImpl componentImpl) {
+    public CellNoQueryHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 
+    /* 
+     * { 
+     * 	  cell_no: 手机号
+     * }
+     * 
+     */
     @Override
     public void handle(OtoCloudBusMessage<JsonObject> msg) {
-        boolean isLegal = BusMessageChecker.checkQueryCellNo(msg.body(), errMsg -> {
+/*        boolean isLegal = BusMessageChecker.checkQueryCellNo(msg.body(), errMsg -> {
             msg.fail(ErrCode.DUPLICATED_CELL_NO.getCode(), errMsg);
         });
 
         if (!isLegal) {
             return;
-        }
-        JsonObject body = msg.body();
-        JsonObject queryParams = body.getJsonObject(MessageBodyConvention.HTTP_QUERY);
-        String cellNo = queryParams.getString(CELL_NO);
-
-        Future<Boolean> future = Future.future();
-        userService.verifyCellNo(cellNo, future);
-        future.setHandler(ret -> {
-            if(ret.succeeded()) {
-                boolean exists = ret.result();
-                JsonObject reply = new JsonObject();
-                reply.put("exists", exists);
-
-                msg.reply(reply);
-            }else{
-                msg.reply(ReplyMessage.failure().toString());
+        }*/
+    	
+        JsonObject content = msg.body().getJsonObject("content");
+    	String cell_no = content.getString("cell_no", null);
+    	
+    	
+        Future<Boolean> verifyFuture = Future.future();
+        //检查手机号字段是否重复.(重复表示已经注册过)
+        UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
+        userDAO.isRegisteredCellNo(cell_no, verifyFuture);
+        
+        verifyFuture.setHandler(ret -> {
+            if (ret.failed()) {
+				Throwable err = ret.cause();
+				String errMsg = err.getMessage();
+				componentImpl.getLogger().error(errMsg, err);	
+				msg.fail(400, errMsg);
+                return;
             }
+
+            boolean exists = ret.result();
+            JsonObject reply = new JsonObject();
+            reply.put("exists", exists);
+
+            msg.reply(reply);
+ 
         });
     }
 
