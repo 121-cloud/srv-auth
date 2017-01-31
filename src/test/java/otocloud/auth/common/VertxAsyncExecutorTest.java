@@ -1,4 +1,4 @@
-package otocloud.auth.common;
+/*package otocloud.auth.common;
 
 import io.vertx.core.Future;
 import io.vertx.ext.unit.Async;
@@ -10,9 +10,9 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 
-/**
+*//**
  * zhangyef@yonyou.com on 2015-11-10.
- */
+ *//*
 @RunWith(VertxUnitRunner.class)
 public class VertxAsyncExecutorTest {
     @Test
@@ -61,3 +61,4 @@ public class VertxAsyncExecutorTest {
         t.start();
     }
 }
+*/

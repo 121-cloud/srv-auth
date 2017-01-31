@@ -1,16 +1,16 @@
-package otocloud.auth.entity;
+/*package otocloud.auth.entity;
 
 import io.vertx.core.json.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
+*//**
  * ResponseMessage Tester.
  *
  * @author <Authors name>
  * @version 1.0
  * @since <pre>九月 29, 2015</pre>
- */
+ *//*
 public class ResponseMessageTest {
 
 
@@ -28,3 +28,4 @@ public class ResponseMessageTest {
 
 
 } 
+*/

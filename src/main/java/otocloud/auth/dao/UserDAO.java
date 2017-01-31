@@ -9,6 +9,7 @@ import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import otocloud.persistence.dao.JdbcDataSource;
+import otocloud.persistence.dao.OperatorDAO;
 import otocloud.persistence.dao.TransactionConnection;
 
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.List;
  * <p>
  * Created by better/zhangye on 15/9/29.
  */
-public class UserDAO extends EntityDAO {
+public class UserDAO extends OperatorDAO {
 	
     public UserDAO(JdbcDataSource dataSource) {
         super(dataSource);
@@ -555,29 +556,8 @@ public class UserDAO extends EntityDAO {
 	       }
 	   });    	
     	
-    }
-    
-    public void getBizUnitList(Long acctId, Future<ResultSet> future) {
-       
-	   final String sql = "SELECT * FROM view_acct_biz_unit where acct_id=?";
-	   JsonArray params = new JsonArray();
-	   params.add(acctId);
-	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
-    	
-    }
+    }   
+
     
     
     public void getUserByName(String userName, Future<ResultSet> future) {

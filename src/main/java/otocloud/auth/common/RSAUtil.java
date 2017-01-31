@@ -11,22 +11,11 @@ import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
-
-
-
 import javax.crypto.Cipher;
 
 import java.io.*;
-import java.math.BigInteger;
 import java.security.*;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
-import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 
@@ -72,26 +61,29 @@ public class RSAUtil {
     private static PrivateKey readPrivateKey(Reader fileReader, String password) {
         try {
 
-            PEMParser pemParser = new PEMParser(fileReader);
-
-            Object object = pemParser.readObject();
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-            KeyPair kp;
-            if (object instanceof PEMEncryptedKeyPair) {
-                // Encrypted key - we will use provided password
-                PEMEncryptedKeyPair ckp = (PEMEncryptedKeyPair) object;
-                PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build(password.toCharArray());
-
-                kp = converter.getKeyPair(ckp.decryptKeyPair(decProv));
-
-            } else {
-                // Unencrypted key - no password needed
-                PEMKeyPair ukp = (PEMKeyPair) object;
-                kp = converter.getKeyPair(ukp);
-            }
-
-
-            return kp.getPrivate();
+        	PEMParser pemParser = new PEMParser(fileReader);
+        	
+        	try{
+	            Object object = pemParser.readObject();
+	            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+	            KeyPair kp;
+	            if (object instanceof PEMEncryptedKeyPair) {
+	                // Encrypted key - we will use provided password
+	                PEMEncryptedKeyPair ckp = (PEMEncryptedKeyPair) object;
+	                PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build(password.toCharArray());
+	
+	                kp = converter.getKeyPair(ckp.decryptKeyPair(decProv));
+	
+	            } else {
+	                // Unencrypted key - no password needed
+	                PEMKeyPair ukp = (PEMKeyPair) object;
+	                kp = converter.getKeyPair(ukp);
+	            }
+	
+	            return kp.getPrivate();
+        	}finally{
+        		pemParser.close();
+        	}        	
         } catch (Exception e) {
             logger.warn("无法读取私钥.");
         }
@@ -102,18 +94,23 @@ public class RSAUtil {
 
     public static PublicKey readPublicKey(String file) throws Exception {
         PEMParser pemParser = new PEMParser(new FileReader(file));
-        Object object = pemParser.readObject();
-
-        PublicKey pubKey = null;
-
-        if (object instanceof SubjectPublicKeyInfo) {
-            SubjectPublicKeyInfo pkInfo = (SubjectPublicKeyInfo) object;
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-            pubKey = converter.getPublicKey(pkInfo);
-
-        }
-
-        return pubKey;
+        
+        try{
+	        Object object = pemParser.readObject();
+	
+	        PublicKey pubKey = null;
+	
+	        if (object instanceof SubjectPublicKeyInfo) {
+	            SubjectPublicKeyInfo pkInfo = (SubjectPublicKeyInfo) object;
+	            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+	            pubKey = converter.getPublicKey(pkInfo);
+	
+	        }
+	
+	        return pubKey;
+	    }finally{
+    		pemParser.close();
+    	}   
     }
 
     /**

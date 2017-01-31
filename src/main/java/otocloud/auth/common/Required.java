@@ -1,23 +1,19 @@
-package guice.validation;
-
-import otocloud.auth.common.RequiredValidator;
+package otocloud.auth.common;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * zhangyef@yonyou.com on 2015-12-21.
+ * Created by zhangye on 2015-10-16.
  */
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = MyConditionValidator.class)
-public @interface MyCondition {
-
+@Constraint(validatedBy = RequiredValidator.class)
+public @interface Required {
     String message() default "总线消息体格式约束 [必须包含的字段]";
 
     /**

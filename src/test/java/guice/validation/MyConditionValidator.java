@@ -1,7 +1,7 @@
 package guice.validation;
 
 import io.vertx.core.json.JsonObject;
-import otocloud.auth.common.validator.Required;
+import otocloud.auth.common.Required;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

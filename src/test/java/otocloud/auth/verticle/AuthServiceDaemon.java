@@ -1,4 +1,4 @@
-package otocloud.auth.verticle;
+/*package otocloud.auth.verticle;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -9,24 +9,24 @@ import io.vertx.core.logging.LoggerFactory;
 import otocloud.framework.core.OtoCloudServiceDepOptions;
 import otocloud.webserver.WebServerVerticle;
 
-/**
+*//**
  * 1. 启动WebServer.
  * 2. 注册AuthService.
  * <p>
  * zhangyef@yonyou.com on 2015-12-16.
- */
+ *//*
 public class AuthServiceDaemon {
 
     public static final String WEBSERVER_NAME = "121webserver-N01";
     protected static final Logger logger = LoggerFactory.getLogger(AuthServiceDaemon.class);
-    /**
+    *//**
      * 启动WebServer的端口.
-     */
+     *//*
     private static final int HTTP_PORT = 8081;
-    /**
+    *//**
      * 配置WebServer的Mongo地址.
      * 注: AuthService的Mongo地址在Auth的配置文件中进行配置.
-     */
+     *//*
 //    private static final String MONGO_HOST = "localhost";
     private static final String MONGO_HOST = "10.10.23.112";
     private static final int MONGO_PORT = 27017;
@@ -41,11 +41,11 @@ public class AuthServiceDaemon {
         //this.gatewayMockUp = new GatewayMockUp();
     }
 
-    /**
+    *//**
      * 单独启动,方便前端页面调试.
      *
      * @param args
-     */
+     *//*
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
 
@@ -100,11 +100,11 @@ public class AuthServiceDaemon {
         });
     }
 
-    /**
+    *//**
      * 按照常量 otocloud.auth.verticle.AuthServiceDaemon#HTTP_PORT 启动WebServer.
      *
      * @param future
-     */
+     *//*
     private void startWebServer(Future<Void> future) {
 
         //配置WebServer
@@ -164,3 +164,4 @@ public class AuthServiceDaemon {
 
 
 }
+*/
