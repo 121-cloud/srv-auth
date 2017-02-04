@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 121Cloud Project Group  All rights reserved.
  */
-package otocloud.auth.authorization;
+package otocloud.auth.post;
 
 import otocloud.auth.dao.AuthDAO;
 import otocloud.common.ActionURI;
@@ -9,60 +9,61 @@ import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.sql.UpdateResult;
 
 
-public class ActivityAuthDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+public class ActivityPermissionVerficationForUserHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
-	public static final String DEP_DELETE = "activity_delete";
+	public static final String ADDRESS = "activity-permission-verfication";
 
 	/**
 	 * Constructor.
 	 *
 	 * @param componentImpl
 	 */
-	public ActivityAuthDeleteHandler(OtoCloudComponentImpl componentImpl) {
+	public ActivityPermissionVerficationForUserHandler(OtoCloudComponentImpl componentImpl) {
 		super(componentImpl);
 	}
 
 	/**
 	{
-		"id":
+		user_id
+		activity_id
+		acct_id
 	}
-	 */
+	*/
 	@Override
 	public void handle(OtoCloudBusMessage<JsonObject> msg) {
 		JsonObject body = msg.body();
 		
 		componentImpl.getLogger().info(body.toString());
 		
-		JsonObject params = body.getJsonObject("queryParams");
-		//JsonObject sessionInfo = body.getJsonObject("session",null);		
+		JsonObject content = body.getJsonObject("content");
 		
-		Long id = Long.parseLong(params.getString("id"));
-			
-		AuthDAO authDAO = new AuthDAO(componentImpl.getSysDatasource());		
+		Long acctId = content.getLong("acct_id");
+		Long activityId = content.getLong("activity_id");
+		Long userId = content.getLong("user_id");
 		
-		authDAO.deleteById(id, daoRet -> {
-
-			if (daoRet.failed()) {
-				Throwable err = daoRet.cause();
+		Future<Boolean> getFuture = Future.future();
+		
+		AuthDAO authDAO = new AuthDAO(componentImpl.getSysDatasource());
+		
+		authDAO.activityPermissionVerify(acctId, activityId, userId, getFuture);
+		
+		getFuture.setHandler(ret-> {
+			if (ret.failed()) {
+				Throwable err = ret.cause();
 				String errMsg = err.getMessage();
 				componentImpl.getLogger().error(errMsg, err);	
 				msg.fail(400, errMsg);
 			} else {
-				UpdateResult result = daoRet.result();		
-				if (result.getUpdated() <= 0) {						
-					String errMsg = "更新影响行数为0";
-					componentImpl.getLogger().error(errMsg);									
-					msg.fail(400, errMsg);
-				} else {
-					msg.reply("ok");
-				}
+				Boolean isOk = ret.result();	
+				msg.reply(new JsonObject().put("result", isOk));
 			}
 		});
+
 
 	}
 	
@@ -81,7 +82,7 @@ public class ActivityAuthDeleteHandler extends OtoCloudEventHandlerImpl<JsonObje
 		paramsDesc.add(new ApiParameterDescriptor("soid",""));		
 		handlerDescriptor.setParamsDesc(paramsDesc);	*/
 		
-		ActionURI uri = new ActionURI(":id", HttpMethod.DELETE);
+		ActionURI uri = new ActionURI(ADDRESS, HttpMethod.POST);
 		handlerDescriptor.setRestApiURI(uri);
 		
 		return handlerDescriptor;		
@@ -93,7 +94,7 @@ public class ActivityAuthDeleteHandler extends OtoCloudEventHandlerImpl<JsonObje
 	 */
 	@Override
 	public String getEventAddress() {
-		return DEP_DELETE;
+		return ADDRESS;
 	}
 
 }

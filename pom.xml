@@ -276,11 +276,11 @@
         <!--</dependency>-->
 
         <!-- gson -->
-        <dependency>
+<!--         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <!--<version>${gson.version}</version>-->
-        </dependency>
+            <version>${gson.version}</version>
+        </dependency> -->
 
         <!-- common-collections4 -->
         <dependency>

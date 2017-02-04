@@ -2,71 +2,71 @@ package otocloud.auth.user;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import otocloud.auth.AuthService;
-import otocloud.auth.user.UserComponent;
 import otocloud.common.ActionURI;
+import otocloud.framework.common.IgnoreAuthVerify;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
+import otocloud.framework.core.session.Session;
+import otocloud.framework.core.session.SessionStore;
 
 /**
  * TODO 退出时,向网关发送消息,告知用户将退出121, 请登出ERP系统.
  * Created by zhangye on 2015-10-18.
  */
+@IgnoreAuthVerify
 public class UserLogoutHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
+    private static final String ADDRESS = "logout";
     
     public UserLogoutHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 
+    /* 
+     * { 
+     * 	  
+     * }
+     * 
+     */  
     @Override
     public void handle(OtoCloudBusMessage<JsonObject> msg) {
-    	
-    	JsonObject loginInfo = msg.body();         
-        JsonObject session = loginInfo.getJsonObject("session");
-		Long userId = session.getLong("user_id");
-       
-		JsonObject query = new JsonObject().put("user_id", userId);
-        
-        AuthService authService = (AuthService)this.componentImpl.getService();
-        authService.getAuthSrvMongoDataSource().getMongoClient().removeDocument("UsersOnline", query, resultHandler->{
-            if(resultHandler.failed()){                                    
-				Throwable errThrowable = resultHandler.cause();
-				String errMsgString = errThrowable.getMessage();
-				this.componentImpl.getLogger().error(errMsgString, errThrowable);
-				msg.fail(100, errMsgString);
-            }else{
-            	msg.reply(resultHandler.result().toJson());
-            }
-        });
+		String token = msg.headers().get("token");
+		
+		//登录成功，构建用户session
+		SessionStore sessionStore = this.componentImpl.getService().getSessionStore();
+		if(sessionStore != null){
+			sessionStore.get(token, sessionRet->{						
+				Session session = sessionRet.result();		
+				
+				session.removeAll(retRet->{
+					msg.reply(retRet.result());									
+					session.close(closeHandler->{							
+					});						
+				});
+
+			});				
+		}else{
+			String errMsgString = "无session服务.";
+			componentImpl.getLogger().error(errMsgString);
+			msg.fail(100, errMsgString);
+		}	
 
     }
     
 
-    /**
 
-    /**
-     * 事件总线上注册的最终地址是："服务名".user-management.users.logout
-     *
-     * @return "user-management.users.logout"
-     * @see otocloud.auth.verticle.UserComponent#MANAGE_USER_ADDRESS
-     */
     @Override
     public String getEventAddress() {
-        return UserComponent.MANAGE_USER_ADDRESS + ".logout";
+        return ADDRESS;
     }
 
-    /**
-     * post /api/"服务名"/"组件名"/users/actions/logout
-     *
-     * @return "users/actions/login"
-     */
+
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/actions/logout", HttpMethod.POST);
+        ActionURI uri = new ActionURI(ADDRESS, HttpMethod.POST);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }

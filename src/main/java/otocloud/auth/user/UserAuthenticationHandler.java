@@ -1,8 +1,5 @@
 package otocloud.auth.user;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.UUID;
@@ -22,29 +19,32 @@ import io.vertx.ext.sql.ResultSet;
 import otocloud.auth.common.ErrCode;
 import otocloud.auth.common.RSAUtil;
 import otocloud.auth.common.Required;
-import otocloud.auth.common.UserOnlineSchema;
+//import otocloud.auth.common.UserOnlineSchema;
 import otocloud.auth.common.ViolationMessageBuilder;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.AuthService;
-import otocloud.auth.user.UserComponent;
+//import otocloud.auth.AuthService;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
+import otocloud.framework.common.IgnoreAuthVerify;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
+import otocloud.framework.core.session.Session;
+import otocloud.framework.core.session.SessionStore;
 
 /**
  * Created by zhangye on 2015-10-15.
  */
-public class UserAuthenticationHandler extends
-		OtoCloudEventHandlerImpl<JsonObject> {
+
+@IgnoreAuthVerify
+public class UserAuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+	
+	public static final String ADDRESS = "authenticate";
 
 	private final StrongPasswordEncryptor passwordEncryptor;
 
-	private String USERS_ONLINE = "UsersOnline";
-
-	private static final String ACTION_URL = "users/actions/authenticate";
+	//private String USERS_ONLINE = "UsersOnline";
 
 	public UserAuthenticationHandler(OtoCloudComponentImpl componentImpl) {
 		super(componentImpl);
@@ -52,34 +52,17 @@ public class UserAuthenticationHandler extends
 		passwordEncryptor = new StrongPasswordEncryptor();
 	}
 
-	public static String getActionUrl() {
-		return ACTION_URL;
-	}
-
-	/**
-	 * post /api/"服务名"/"组件名"/users/actions/authenticate
-	 *
-	 * @return "users/actions/authenticate"
-	 */
 	@Override
 	public HandlerDescriptor getHanlderDesc() {
 		HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-		ActionURI uri = new ActionURI(ACTION_URL, HttpMethod.POST);
+		ActionURI uri = new ActionURI(ADDRESS, HttpMethod.POST);
 		handlerDescriptor.setRestApiURI(uri);
 		return handlerDescriptor;
 	}
 
-	/**
-	 * "服务名".user-management.users.login
-	 *
-	 * serviceName.componentName.getEventAddress()
-	 *
-	 * @return "user-management.users.login"
-	 * @see otocloud.auth.verticle.UserComponent#MANAGE_USER_ADDRESS
-	 */
 	@Override
 	public String getEventAddress() {
-		return UserComponent.MANAGE_USER_ADDRESS + ".authenticate";
+		return ADDRESS;
 	}
 	
 	private void triggerCheckLoginInfo(
@@ -141,11 +124,11 @@ public class UserAuthenticationHandler extends
 		// CommandContext context = new CommandContext();
 		JsonObject data = loginInfo.getJsonObject("content");
 		// context.put("data", data);
-        JsonObject session = loginInfo.getJsonObject("session");
-        if(session == null)
+        //JsonObject session = loginInfo.getJsonObject("session");
+/*        if(session == null)
         	session = new JsonObject();
         final JsonObject sessionObj = session;
-		String sessionId = session.getString("id", "");
+		String sessionId = session.getString("id", "");*/
 		// Future<JsonObject> future = Future.future();
 		// loginCommand.executeFuture(context, future);
 
@@ -156,8 +139,8 @@ public class UserAuthenticationHandler extends
 
 		// String sessionId = context.get("sessionId").toString();
 
-		this.componentImpl.getLogger().info(
-				"AuthService - 登录时的SessionID是: " + sessionId);
+/*		this.componentImpl.getLogger().info(
+				"AuthService - 登录时的SessionID是: " + sessionId);*/
 
 		UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
 
@@ -219,69 +202,58 @@ public class UserAuthenticationHandler extends
 	
 				// Future<UpdateResult> setLoginDtFuture = Future.future();
 				Future<UpdateResult> setLoginDtFuture = Future.future();
-				userDAO.setLoginDateTime(userId.toString(), setLoginDtFuture);
-	
-				// 记录用户在线状态
-				// 在数据库中记录登录信息.
-				Future<Void> onlineFuture = Future.future();
-				stayOnline(userId, sessionId, token, onlineFuture);
-				onlineFuture.setHandler(onlineRet -> {
-					if (onlineRet.succeeded()) {
-	
-						JsonObject reply = new JsonObject();
-						// reply.put("user_openid", userOpenId);
-						reply.put(SessionSchema.CURRENT_USER_ID, userId); // 设置用户ID（数据库主键）
-						reply.put("user_name", userNameStr);
-						reply.put("access_token", token.toString());// 获取到的凭证
-						reply.put("expires_in", 7200); // 凭证有效时间，单位：秒
+				userDAO.setLoginDateTime(userId.toString(), setLoginDtFuture);				
+
+				//登录成功，构建用户session
+				SessionStore sessionStore = this.componentImpl.getService().getSessionStore();
+				if(sessionStore != null){
+					sessionStore.create(token, sessionRet->{						
+						Session session = sessionRet.result();		
 						
-						sessionObj.put(SessionSchema.CURRENT_USER_ID, userId);
+						JsonObject sessionObj = new JsonObject();
+						sessionObj.put(SessionSchema.CURRENT_USER_ID, userId.toString());
 						sessionObj.put("user_name", userNameStr);
-
-		                reply.put("session", sessionObj);   
 						
-						//取当前用户关联的租户
-						Future<ResultSet> acctsFuture = Future.future();
-						userDAO.getUserAccts(userId, acctsFuture);
-						acctsFuture.setHandler(userAcctsRet -> {
-							if (userAcctsRet.succeeded()) {						
-								List<JsonObject> userAccts = userAcctsRet.result().getRows();
-								JsonArray userAcctsArray = new JsonArray(userAccts);
-								reply.put("accts", userAcctsArray);
+						session.setItems(sessionObj, retRet->{
 								
-							} else {
-								Throwable errThrowable = userAcctsRet.cause();
-								String errMsgString = errThrowable.getMessage();
-								this.componentImpl.getLogger().error(errMsgString,
-										errThrowable);								
-							}
-
-			                //将企业账号取出，放入Session中
-/*			                int acctId = reply.getInteger(ACCT_ID);
-			                reply.remove(ACCT_ID);
-*/
-			                //取出用户ID，放入Session中。
-/*			                int userId = reply.getInteger(USER_ID);
-			                reply.remove(USER_ID);*/
-
-			                //session.put(ACCT_ID, acctId);
-/*			                session.put(USER_ID, userId);
-			                reply.put("session", session);    */            
-		
-							msg.reply(reply);
+							session.close(closeHandler->{							
+							});	
+							
+							JsonObject reply = new JsonObject();
+							// reply.put("user_openid", userOpenId);
+							reply.put(SessionSchema.CURRENT_USER_ID, userId); // 设置用户ID（数据库主键）
+							reply.put("user_name", userNameStr);
+							reply.put("access_token", token.toString());// 获取到的凭证
+							reply.put("expires_in", 7200); // 凭证有效时间，单位：秒
+							
+							//取当前用户关联的租户
+							Future<ResultSet> acctsFuture = Future.future();
+							userDAO.getUserAccts(userId, acctsFuture);
+							acctsFuture.setHandler(userAcctsRet -> {
+								if (userAcctsRet.succeeded()) {						
+									List<JsonObject> userAccts = userAcctsRet.result().getRows();
+									JsonArray userAcctsArray = new JsonArray(userAccts);
+									reply.put("accts", userAcctsArray);
+									
+								} else {
+									Throwable errThrowable = userAcctsRet.cause();
+									String errMsgString = errThrowable.getMessage();
+									this.componentImpl.getLogger().error(errMsgString,
+											errThrowable);								
+								}	     
+			
+								msg.reply(reply);									
+								
+							});	
 							
 						});
-	
 
-					} else {
-						Throwable errThrowable = onlineRet.cause();
-						String errMsgString = errThrowable.getMessage();
-						this.componentImpl.getLogger().error(errMsgString,
-								errThrowable);
-						msg.fail(100, errMsgString);
-					}
-				});
-
+					});				
+				}else{
+					String errMsgString = "无session服务.";
+					componentImpl.getLogger().error(errMsgString);
+					msg.fail(100, errMsgString);
+				}	
 
 			} else {
 				Throwable errThrowable = ret.cause();
@@ -292,29 +264,6 @@ public class UserAuthenticationHandler extends
 	
 		});
 
-		/*
-		 * future.setHandler(ret -> { if (ret.succeeded()) { JsonObject reply =
-		 * ret.result();
-		 * 
-		 * //将企业账号取出，放入Session中 int acctId = reply.getInteger(ACCT_ID);
-		 * reply.remove(ACCT_ID);
-		 * 
-		 * //取出用户ID，放入Session中。 int userId = reply.getInteger(USER_ID);
-		 * reply.remove(USER_ID);
-		 * 
-		 * JsonObject session = loginInfo.getJsonObject("session"); if(session
-		 * == null) session = new JsonObject(); session.put(ACCT_ID, acctId);
-		 * session.put(USER_ID, userId);
-		 * 
-		 * reply.put("session", session);
-		 * 
-		 * 
-		 * if(logger.isInfoEnabled()){ logger.info("返回用户登录结果."); }
-		 * 
-		 * msg.reply(ret.result()); } else {
-		 * msg.fail(ErrCode.INVALID_USERNAME_OR_PASSWORD.getCode(),
-		 * ret.cause().getMessage()); } });
-		 */
 	}
 
 	private void authenticateByCellNo(UserDAO userDAO, String cellNo,
@@ -327,7 +276,7 @@ public class UserAuthenticationHandler extends
 		userDAO.getUserByName(userName, future);
 	}
 
-	private void stayOnline(Long userId, String sessionId, String token,
+/*	private void stayOnline(Long userId, String sessionId, String token,
 			Future<Void> future) {
 		if (null == sessionId) {
 			this.componentImpl.getLogger().info("没有SessionID, 无法关联token.");
@@ -361,7 +310,7 @@ public class UserAuthenticationHandler extends
 					}
 				});
 
-	}
+	}*/
 
 	private String getPlainText(String encryptedPassword) {
 		try {

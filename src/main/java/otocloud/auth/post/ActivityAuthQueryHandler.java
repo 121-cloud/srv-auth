@@ -1,4 +1,4 @@
-package otocloud.auth.authorization;
+package otocloud.auth.post;
 
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;

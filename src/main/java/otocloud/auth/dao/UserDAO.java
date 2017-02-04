@@ -255,7 +255,7 @@ public class UserDAO extends OperatorDAO {
 
 				                Future<UpdateResult> innerFuture2 = Future.future();
 
-				                updateWithParams(insertPostSQL, params2, innerFuture2);
+				                updateWithParams(transConn, insertPostSQL, params2, innerFuture2);
 				                
 				                innerFuture2.setHandler(result2 -> {
 				                    if (result2.succeeded()) {
@@ -435,7 +435,7 @@ public class UserDAO extends OperatorDAO {
      * @param future 返回User对象.
      */
     public void findById(int id, Future<ResultSet> future) {
-        queryBy("auth_user", new String[]{"id", "org_acct_id", "org_dept_id", "name", "cell_no", "email"}, new
+        queryBy("auth_user", new String[]{"id", "name", "cell_no", "email"}, new
                 JsonObject().put("id", id), future);
 
     }
@@ -451,7 +451,7 @@ public class UserDAO extends OperatorDAO {
      */
     public void findBy(String userName, String password, Future<ResultSet> future) {
 
-        queryBy("auth_user", new String[]{"id", "org_acct_id", "name"},
+        queryBy("auth_user", new String[]{"id", "name"},
                 new JsonObject().put("name", userName).put("password", password),
                 future);
 
@@ -466,14 +466,14 @@ public class UserDAO extends OperatorDAO {
      */
     public void findByCellNo(String cellNo, String password, Future<ResultSet> future) {
 
-        queryBy("auth_user", new String[]{"id", "org_acct_id", "name"},
+        queryBy("auth_user", new String[]{"id", "name"},
                 new JsonObject().put("cell_no", cellNo).put("password", password),
                 future);
     }
     
     public void isRegisteredCellNo(String cellNo, Future<Boolean> future) {
              
-        final String sql = "SELECT count(id) FROM auth_user WHERE cell_no=?";
+        final String sql = "SELECT count(*) as num FROM auth_user WHERE cell_no=?";
         JsonArray params = new JsonArray();
         params.add(cellNo);
 
@@ -486,7 +486,12 @@ public class UserDAO extends OperatorDAO {
             	ResultSet resultSet = result.result();
             	List<JsonObject> retDataArrays = resultSet.getRows();
             	if(retDataArrays != null && retDataArrays.size() > 0){
-            		future.complete(true);
+            		Long num = retDataArrays.get(0).getLong("num");
+            		if(num > 0){
+            			future.complete(true);
+            		}else{
+            			future.complete(false);
+            		}
             	}else{
             		future.complete(false);
             	}

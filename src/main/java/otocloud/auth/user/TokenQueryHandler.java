@@ -1,22 +1,29 @@
-package otocloud.auth.user;
+/*package otocloud.auth.user;
 
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import otocloud.auth.common.UserOnlineSchema;
 import otocloud.auth.AuthService;
+import otocloud.common.ActionURI;
+import otocloud.framework.common.IgnoreAuthVerify;
+import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
-/**
+*//**
  * 查询用户的授权相关信息.
  * 只提供事件总线API,不提供RestAPI.
  * 例如,根据token查询SessionId.
  *
  * zhangyef@yonyou.com on 2015-11-24.
- */
+ *//*
+@IgnoreAuthVerify
 public class TokenQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
 	private String USERS_ONLINE = "UsersOnline";
+	
+	public static final String ADDRESS = "token-query";
 	
     public TokenQueryHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
@@ -58,12 +65,22 @@ public class TokenQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
     }
 
-    /**
+    *//**
      * "服务名".user-management.query
      * @return
-     */
+     *//*
     @Override
     public String getEventAddress() {
-        return "query";
+        return ADDRESS;
+    }
+    
+
+    @Override
+    public HandlerDescriptor getHanlderDesc() {
+        HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
+        ActionURI uri = new ActionURI(ADDRESS, HttpMethod.GET);
+        handlerDescriptor.setRestApiURI(uri);
+        return handlerDescriptor;
     }
 }
+*/

@@ -1,10 +1,13 @@
 package otocloud.auth.dao;
 
 
+import java.util.List;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.UpdateResult;
 import otocloud.persistence.dao.JdbcDataSource;
@@ -104,6 +107,75 @@ public class AuthDAO extends OperatorDAO {
 	   });    	
     	
     }
+    
+    public void appPermissionVerify(Long acctId, Long appId, Long userId, Future<Boolean> future) {
+        
+        final String sql = "SELECT count(*) as num FROM view_user_app WHERE acct_id=? AND app_id=? AND auth_user_id=?";
+        JsonArray params = new JsonArray();
+        params.add(acctId);
+        params.add(appId);
+        params.add(userId);
 
+        Future<ResultSet> innerFuture = Future.future();
+
+        this.queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	if(retDataArrays != null && retDataArrays.size() > 0){
+            		Long num = retDataArrays.get(0).getLong("num");
+            		if(num > 0){
+            			future.complete(true);
+            		}else{
+            			future.complete(false);
+            		}
+            	}else{
+            		future.complete(false);
+            	}
+
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
+
+    public void activityPermissionVerify(Long acctId, Long activityId, Long userId, Future<Boolean> future) {
+        
+        final String sql = "SELECT count(*) as num FROM view_user_activity WHERE acct_id=? AND d_app_activity_id=? AND auth_user_id=?";
+        JsonArray params = new JsonArray();
+        params.add(acctId);
+        params.add(activityId);
+        params.add(userId);
+
+        Future<ResultSet> innerFuture = Future.future();
+
+        this.queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	if(retDataArrays != null && retDataArrays.size() > 0){
+            		Long num = retDataArrays.get(0).getLong("num");
+            		if(num > 0){
+            			future.complete(true);
+            		}else{
+            			future.complete(false);
+            		}
+            	}else{
+            		future.complete(false);
+            	}
+
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
     
 }

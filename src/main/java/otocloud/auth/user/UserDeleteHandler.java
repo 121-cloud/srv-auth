@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.user.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
@@ -15,6 +14,8 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  * Created by zhangye on 2015-10-27.
  */
 public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+	
+	public static final String ADDRESS = "delete";
 
     public UserDeleteHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
@@ -35,10 +36,16 @@ public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         if (!isLegal) {
             return;
         }*/
-
-        JsonObject content = msg.body().getJsonObject("content");
     	
-    	Long userId = content.getLong("id", 0L);
+    	JsonObject body = msg.body();
+    	
+		JsonObject params = body.getJsonObject("queryParams");		
+		
+		Long userId = Long.parseLong(params.getString("id"));
+
+        //JsonObject content = msg.body().getJsonObject("content");
+    	
+    	//Long userId = content.getLong("id", 0L);
  
         Future<Boolean> future = Future.future();
         
@@ -65,7 +72,7 @@ public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/:user_id", HttpMethod.DELETE);
+        ActionURI uri = new ActionURI(ADDRESS + "/:id", HttpMethod.DELETE);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }
@@ -76,6 +83,6 @@ public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      */
     @Override
     public String getEventAddress() {
-        return UserComponent.MANAGE_USER_ADDRESS + ".delete";
+        return ADDRESS;
     }
 }

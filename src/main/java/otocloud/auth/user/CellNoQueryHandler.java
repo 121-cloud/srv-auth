@@ -4,8 +4,8 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.user.UserComponent;
 import otocloud.common.ActionURI;
+import otocloud.framework.common.IgnoreAuthVerify;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
@@ -16,7 +16,10 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  * <p>
  * zhangyef@yonyou.com on 2015-11-09.
  */
+@IgnoreAuthVerify
 public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+	
+	public static final String ADDRESS = "verify_cellno";
 
     public CellNoQueryHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
@@ -72,7 +75,7 @@ public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      */
     @Override
     public String getEventAddress() {
-        return UserComponent.MANAGE_USER_ADDRESS + ".verify.cellNo";
+        return ADDRESS;
     }
 
     /**
@@ -83,7 +86,7 @@ public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/verify", HttpMethod.GET);
+        ActionURI uri = new ActionURI(ADDRESS, HttpMethod.GET);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }

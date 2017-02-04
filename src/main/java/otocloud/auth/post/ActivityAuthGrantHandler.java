@@ -1,4 +1,4 @@
-package otocloud.auth.authorization;
+package otocloud.auth.post;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -13,12 +13,12 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
 
 
-public class ActivityAuthCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+public class ActivityAuthGrantHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
-	public static final String DEP_CREATE = "activity_create";
+	public static final String DEP_CREATE = "activity_grant";
 
 
-    public ActivityAuthCreationHandler(OtoCloudComponentImpl componentImpl) {
+    public ActivityAuthGrantHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 
@@ -38,7 +38,7 @@ public class ActivityAuthCreationHandler extends OtoCloudEventHandlerImpl<JsonOb
 		componentImpl.getLogger().info(body.toString());
 		
 		JsonObject content = body.getJsonObject("content");
-		JsonObject sessionInfo = body.getJsonObject("session",null);	
+		JsonObject sessionInfo = msg.getSession();
 		
 		Long acct_biz_unit_post_id = content.getLong("acct_biz_unit_post_id");
 		Long acct_app_activity_id = content.getLong("acct_app_activity_id");
@@ -48,7 +48,7 @@ public class ActivityAuthCreationHandler extends OtoCloudEventHandlerImpl<JsonOb
 		
 		Long entry_id = 0L; //默认为0，表示没有用户.
         if (sessionInfo != null) {
-        	entry_id = sessionInfo.getLong(SessionSchema.CURRENT_USER_ID, 0L);
+        	entry_id = Long.parseLong(sessionInfo.getString(SessionSchema.CURRENT_USER_ID));
         }
 			
 		AuthDAO authDAO = new AuthDAO(componentImpl.getSysDatasource());

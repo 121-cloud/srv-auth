@@ -1,11 +1,27 @@
 {
-  	"main": "otocloud.auth.verticle.AuthService",
+	"main": "otocloud.auth.AuthService",
 	"options": {
 		"config": {
-			"mongo_client": {
-				"host": "127.0.0.1",
-				"port": 27017
-			},		
+			"service_name": "otocloud-auth",
+			"api_register_server": {
+				"webserver_name": "121webserver-N01"
+			},	
+			"sessionservice_config": {
+				"expire_seconds": 1800,
+				"redis_options": {
+					"host": "127.0.0.1",
+					"port": 6379
+				}
+			},	
+			"mongo_client": 
+			{
+				"config": 
+				{
+					"db_name": "otocloud-auth",
+					"connection_string": "mongodb://127.0.0.1:27017"
+				},
+				"sharedpool": "mongo-auth"
+			},			
 			"sys_datasource": {
 				"config": {
 					"max_pool_size": 30,
@@ -16,21 +32,9 @@
 				},
 				"sharedpool": "jdbc-psc"
 			},
-			"component_common": {
-				
+			"component_common": {				
 			},
-			"service_name": "otocloud-auth",
 			"component_config": {
-				"account-registry": {
-					"options": {
-						"config": {
-							
-						}
-					}
-				}
-			},
-			"api_register_server": {
-				"webserver_name": "121webserver-N01"
 			},
 			"component_deployment": []
 		}

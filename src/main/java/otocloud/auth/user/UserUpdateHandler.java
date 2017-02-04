@@ -5,7 +5,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.UpdateResult;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.user.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
@@ -17,6 +16,8 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  */
 
 public class UserUpdateHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+	
+	private static final String ADDRESS = "update";
 
     public UserUpdateHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
@@ -42,9 +43,15 @@ public class UserUpdateHandler extends OtoCloudEventHandlerImpl<JsonObject> {
             return;
         }*/
     	
+    	JsonObject body = msg.body();
+    	
+		JsonObject params = body.getJsonObject("queryParams");		
+		
+		Long userId = Long.parseLong(params.getString("id"));
+    	
         JsonObject content = msg.body().getJsonObject("content");
     	
-    	Long userId = content.getLong("id", 0L);
+    	//Long userId = content.getLong("id", 0L);
     	String name = content.getString("name", null);
     	String cell_no = content.getString("cell_no", null);
     	String email = content.getString("email", null);    	
@@ -66,25 +73,16 @@ public class UserUpdateHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         });
     }
 
-    /**
-     * 得到对应事件总线的地址。
-     *
-     * @return "服务名"."组件名"."具体地址"，即 "服务名".user-management.users.put
-     */
+
     @Override
     public String getEventAddress() {
-        return UserComponent.MANAGE_USER_ADDRESS + ".put";
+        return ADDRESS;
     }
 
-    /**
-     * 注册REST API。
-     *
-     * @return put /api/"服务名"/"组件名"/users/:openId
-     */
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/:openId", HttpMethod.PUT);
+        ActionURI uri = new ActionURI(ADDRESS + "/:id", HttpMethod.PUT);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }

@@ -2,7 +2,7 @@ package otocloud.auth;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import otocloud.auth.authorization.AuthenticationComponent;
+import otocloud.auth.post.AuthenticationComponent;
 import otocloud.auth.user.UserComponent;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudComponent;

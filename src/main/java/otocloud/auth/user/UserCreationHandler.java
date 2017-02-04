@@ -31,6 +31,7 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
 public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
+	public static final String ADDRESS = "create";
     /**
      * 存储需要激活的用户ID
      */
@@ -40,7 +41,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 线程安全的加密类.
      */
     private final StrongPasswordEncryptor passwordEncryptor;
-
+    
     public UserCreationHandler(OtoCloudComponentImpl component) {
         super(component);
         
@@ -62,7 +63,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * @param msg
      */
     private void triggerCheckCreateUserInfo(
-            @Required({"name", "password", "org_acct_id", "cell_no", "email"}) JsonObject msg) {
+            @Required({"name", "password", "cell_no", "email"}) JsonObject msg) {
         //do nothing.
     }
 
@@ -110,7 +111,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         }
 
         JsonObject body = msg.body();
-        JsonObject session = body.getJsonObject(SessionSchema.SESSION, null);
+        JsonObject session = msg.getSession();
         
         JsonObject content = body.getJsonObject("content");
         Long acctId = content.getLong("acct_id");
@@ -121,7 +122,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         //从Session中取出当前登录的用户ID
         Long currentUser = 0L; //默认为0，表示没有用户.
         if (session != null) {
-            currentUser = session.getLong(SessionSchema.CURRENT_USER_ID, 0L);
+            currentUser = Long.parseLong(session.getString(SessionSchema.CURRENT_USER_ID));
         }
         userInfo.put("entry_id", currentUser);
 
@@ -276,7 +277,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      */
     @Override
     public String getEventAddress() {
-        return "users.operators.post";
+        return ADDRESS;
     }
 
     /**
@@ -287,7 +288,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/operators", HttpMethod.POST);
+        ActionURI uri = new ActionURI(ADDRESS, HttpMethod.POST);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }

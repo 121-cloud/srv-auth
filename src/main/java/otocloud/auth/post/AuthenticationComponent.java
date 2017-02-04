@@ -1,4 +1,4 @@
-package otocloud.auth.authorization;
+package otocloud.auth.post;
 
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerRegistry;
@@ -27,9 +27,11 @@ public class AuthenticationComponent extends OtoCloudComponentImpl {
     public List<OtoCloudEventHandlerRegistry> registerEventHandlers() {
         List<OtoCloudEventHandlerRegistry> ret = new ArrayList<OtoCloudEventHandlerRegistry>();
 
-        ret.add(new ActivityAuthCreationHandler(this));
+        ret.add(new ActivityAuthGrantHandler(this));
         ret.add(new ActivityAuthDeleteHandler(this));
         ret.add(new ActivityAuthQueryHandler(this));
+        ret.add(new AppPermissionVerficationForUserHandler(this));
+        ret.add(new ActivityPermissionVerficationForUserHandler(this));
 
         return ret;
     }

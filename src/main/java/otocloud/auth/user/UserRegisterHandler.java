@@ -14,9 +14,9 @@ import otocloud.auth.common.RSAUtil;
 import otocloud.auth.common.Required;
 import otocloud.auth.common.ViolationMessageBuilder;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.user.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
+import otocloud.framework.common.IgnoreAuthVerify;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
@@ -26,7 +26,10 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  * 向系统中添加一个管理员用户.
  * Created by zhangye on 2015-10-14.
  */
+@IgnoreAuthVerify
 public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+	
+	private static final String ADDRESS = "register";
 	
     /**
      * 线程安全的加密类.
@@ -48,7 +51,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users", HttpMethod.POST);
+        ActionURI uri = new ActionURI(ADDRESS, HttpMethod.POST);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }
@@ -61,7 +64,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      */
     @Override
     public String getEventAddress() {
-        return UserComponent.MANAGE_USER_ADDRESS + ".post";
+        return ADDRESS;
     }
     
     /**
@@ -90,7 +93,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * @param msg
      */
     private void triggerCheckCreateUserInfo(
-            @Required({"name", "password", "org_acct_id", "cell_no", "email"}) JsonObject msg) {
+            @Required({"name", "password", "cell_no", "email"}) JsonObject msg) {
         //do nothing.
     }
 
@@ -140,7 +143,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         }
 
         JsonObject body = msg.body();
-        JsonObject session = body.getJsonObject(SessionSchema.SESSION, null);
+        JsonObject session = msg.getSession();
         
         JsonObject content = body.getJsonObject("content");
         Long acctId = content.getLong("acct_id");
@@ -151,7 +154,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         //从Session中取出当前登录的用户ID
         Long currentUser = 0L; //默认为0，表示没有用户.
         if (session != null) {
-            currentUser = session.getLong(SessionSchema.CURRENT_USER_ID, 0L);
+            currentUser = Long.parseLong(session.getString(SessionSchema.CURRENT_USER_ID));
         }
         userInfo.put("entry_id", currentUser);
 

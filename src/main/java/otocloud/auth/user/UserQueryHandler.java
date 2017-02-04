@@ -5,7 +5,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.user.UserComponent;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
 import otocloud.framework.core.HandlerDescriptor;
@@ -20,9 +19,9 @@ import java.util.List;
  * zhangyef@yonyou.com on 2015-12-18.
  */
 public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
-    //protected static final Logger logger = LoggerFactory.getLogger(UserQueryHandler.class);
 
-    
+	private static final String ADDRESS = "query";
+	
     public UserQueryHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
@@ -52,9 +51,9 @@ public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         JsonObject pagingOptions = content.getJsonObject("paging");
         Integer pageSize = pagingOptions.getInteger("page_size");
 
-        JsonObject session = body.getJsonObject(SessionSchema.SESSION);
+        JsonObject session = msg.getSession();
         
-        Long acctId = session.getLong(SessionSchema.ORG_ACCT_ID);
+        Long acctId = Long.parseLong(session.getString(SessionSchema.ORG_ACCT_ID));
 
         Future<ResultSet> pageFuture = Future.future();
 
@@ -108,7 +107,7 @@ public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public HandlerDescriptor getHanlderDesc() {
         HandlerDescriptor handlerDescriptor = super.getHanlderDesc();
-        ActionURI uri = new ActionURI("users/page", HttpMethod.POST);
+        ActionURI uri = new ActionURI(ADDRESS, HttpMethod.POST);
         handlerDescriptor.setRestApiURI(uri);
         return handlerDescriptor;
     }
@@ -118,6 +117,6 @@ public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      */
     @Override
     public String getEventAddress() {
-        return UserComponent.MANAGE_USER_ADDRESS + ".get.page";
+        return ADDRESS;
     }
 }

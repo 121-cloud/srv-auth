@@ -15,9 +15,6 @@ public class UserComponent extends OtoCloudComponentImpl {
 
 	private static final String USER_COMPONENT_NAME = "user-management";
 
-    public static final String MANAGE_USER_ADDRESS = "users";//响应用户注册
-
-	
     public UserComponent() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -38,7 +35,7 @@ public class UserComponent extends OtoCloudComponentImpl {
         ret.add(new UserUpdateHandler(this));
         ret.add(new UserDeleteHandler(this));
         ret.add(new CellNoQueryHandler(this));
-        ret.add(new TokenQueryHandler(this));
+        //ret.add(new TokenQueryHandler(this));
         //ret.add(new BizUnitQueryHandler(this));
         ret.add(new UserQueryHandler(this));
         ret.add(new UserCreationHandler(this));
