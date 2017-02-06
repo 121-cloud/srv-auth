@@ -163,6 +163,8 @@ public class UserAuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObje
 
 				// 对密码解密,获取明文
 				String plainTxt = getPlainText(password);
+				
+				Exception passwordEncryptErr = null;
 
 				// 分别验证各个用户
 				while (itr.hasNext()) {
@@ -172,21 +174,33 @@ public class UserAuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObje
 						loginUser = user;
 						break;
 					}
-					// 使用SHA-256哈希摘要算法将明文进行哈希计算，并与数据存储的哈希密文进行比较
-					boolean matched = passwordEncryptor.checkPassword(plainTxt,
-							dbPwd);
-
-					if (matched) {
-						loginUser = user;
-						break;
+					
+					try{
+						// 使用SHA-256哈希摘要算法将明文进行哈希计算，并与数据存储的哈希密文进行比较
+						boolean matched = passwordEncryptor.checkPassword(plainTxt,
+								dbPwd);
+	
+						if (matched) {
+							loginUser = user;
+							break;
+						}
+					}catch(Exception ex){
+						passwordEncryptErr = ex;
 					}
 				}
 
 				if (loginUser == null) {
+					if(passwordEncryptErr != null){
+						String errMsgString = "密码错误." +  passwordEncryptErr.getMessage();
+						this.componentImpl.getLogger().error(errMsgString, passwordEncryptErr);
+						msg.fail(100, errMsgString);	
+						return;
+					}else{
 						// 没有用户,直接返回登录失败.
-					this.componentImpl.getLogger().info("无法找到用户信息.");
-					msg.fail(400, "无法找到用户信息.");
-					return;
+						this.componentImpl.getLogger().info("无法找到用户信息.");
+						msg.fail(100, "无法找到用户信息.");
+						return;
+					}
 				}
 	
 				Long userId = loginUser.getLong("id");
@@ -224,7 +238,7 @@ public class UserAuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObje
 							reply.put(SessionSchema.CURRENT_USER_ID, userId); // 设置用户ID（数据库主键）
 							reply.put("user_name", userNameStr);
 							reply.put("access_token", token.toString());// 获取到的凭证
-							reply.put("expires_in", 7200); // 凭证有效时间，单位：秒
+							reply.put("expires_in", sessionStore.getExpireSeconds()); // 凭证有效时间，单位：秒
 							
 							//取当前用户关联的租户
 							Future<ResultSet> acctsFuture = Future.future();

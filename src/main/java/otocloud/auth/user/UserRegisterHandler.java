@@ -127,6 +127,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 	  acct_id: 租户ID
      * 	  biz_unit_id: 业务单元ID
      * 	  mgr_post_id: IT管理员岗位ID
+     * 	  auth_role_id: 对应的角色 规格
      * 	  user: {
      * 	  }
      * }
@@ -149,6 +150,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         Long acctId = content.getLong("acct_id");
         Long bizUnitId = content.getLong("biz_unit_id");
         Long mgrPostId = content.getLong("mgr_post_id");
+        Long authRoleId = content.getLong("auth_role_id");
 
         JsonObject userInfo = content.getJsonObject("user");
         //从Session中取出当前登录的用户ID
@@ -200,7 +202,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                 }
 
                 Future<JsonObject> createUserfuture = Future.future();
-                userDAO.create(userInfo, acctId, bizUnitId, mgrPostId, createUserfuture);
+                userDAO.create(userInfo, acctId, true, bizUnitId, mgrPostId, authRoleId, createUserfuture);
                 createUserfuture.setHandler(userResult -> {
                     if (userResult.succeeded()) {
                     	JsonObject u = userResult.result();

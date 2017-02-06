@@ -35,7 +35,7 @@ public class UserComponent extends OtoCloudComponentImpl {
         ret.add(new UserUpdateHandler(this));
         ret.add(new UserDeleteHandler(this));
         ret.add(new CellNoQueryHandler(this));
-        //ret.add(new TokenQueryHandler(this));
+        ret.add(new AcctOwnerGetHandler(this));
         //ret.add(new BizUnitQueryHandler(this));
         ret.add(new UserQueryHandler(this));
         ret.add(new UserCreationHandler(this));

@@ -30,7 +30,7 @@ public class UserDAO extends OperatorDAO {
 
         final String insertUserSQL = "INSERT INTO auth_user(" +
                 "name, password, cell_no, email, status, entry_id, entry_datetime) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, now())";
+                "VALUES(?, ?, ?, ?, ?, ?, now())";
         JsonArray params = new JsonArray();
         //params.add(user.getOrgAcctId());
         params.add(user.getString("name"));
@@ -64,11 +64,11 @@ public class UserDAO extends OperatorDAO {
     }
     
     
-    public void create(JsonObject user, Long acctId, Long bizUnitId, Long postId, Future<JsonObject> future) {
+    public void create(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Long postId, Long authRoleId, Future<JsonObject> future) {
 
         final String insertUserSQL = "INSERT INTO auth_user(" +
                 "name, password, cell_no, email, status, entry_id, entry_datetime) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, now())";
+                "VALUES(?, ?, ?, ?, ?, ?, now())";
         JsonArray params = new JsonArray();
         //params.add(user.getOrgAcctId());
         params.add(user.getString("name"));
@@ -104,7 +104,7 @@ public class UserDAO extends OperatorDAO {
 				                
 				                Future<UpdateResult> addAcctPostfuture = Future.future();		
 				                
-				                addAcctPost(transConn, acctId, bizUnitId, postId, userId, entryId, addAcctPostfuture);
+				                addAcctPost(transConn, acctId, bizUnitId, postId, authRoleId, userId, isOwner, entryId, addAcctPostfuture);
 				                
 				                addAcctPostfuture.setHandler(addAcctPostRet -> {
 						            if (addAcctPostRet.succeeded()) {
@@ -152,14 +152,15 @@ public class UserDAO extends OperatorDAO {
     }
     
     
-    private void addAcctPost(TransactionConnection transConn, Long acctId, Long bizUnitId, Long postId, Long userId, Long operatorId, Future<UpdateResult> future) {
+    private void addAcctPost(TransactionConnection transConn, Long acctId, Long bizUnitId, Long postId, Long authRoleId, Long userId, Boolean isOwner, Long operatorId, Future<UpdateResult> future) {
     	
-        final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, status, entry_id, entry_datetime) " +
-                "VALUES(?, ?, 'A', ?, now())" +
+        final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, is_owner, status, entry_id, entry_datetime) " +
+                "VALUES(?, ?, ?, 'A', ?, now())" +
         		"ON DUPLICATE KEY UPDATE auth_user_id=?,acct_id=?";
         JsonArray params = new JsonArray();
         params.add(userId);
         params.add(acctId);
+        params.add(isOwner ? 1 : 0);
         params.add(operatorId);
         params.add(userId);
         params.add(acctId); 
@@ -175,13 +176,14 @@ public class UserDAO extends OperatorDAO {
                 logger.info("更新了" + num + "条记录.");
                 logger.info(updateResult.toJson());
 
-                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, acct_biz_unit_post_id, status, entry_id, entry_datetime) " +
-                        "VALUES(?, ?, ?, ?, 'A', ?, now())";
+                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, acct_biz_unit_post_id, d_auth_role_id, status, entry_id, entry_datetime) " +
+                        "VALUES(?, ?, ?, ?, ?, 'A', ?, now())";
                 JsonArray params2 = new JsonArray();
                 params2.add(userId);
                 params2.add(acctId);                
                 params2.add(bizUnitId);
-                params2.add(postId);                
+                params2.add(postId);         
+                params2.add(authRoleId);  
                 params2.add(operatorId);
 
                 Future<UpdateResult> innerFuture2 = Future.future();
@@ -213,17 +215,18 @@ public class UserDAO extends OperatorDAO {
      * @param operatorId
      * @param future
      */
-    public void addAcctPost(Long acctId, Long bizUnitId, Long postId, Long userId, Long operatorId, Future<UpdateResult> future) {
+    public void addAcctPost(Long acctId, Long bizUnitId, Long postId, Long authRoleId, Long userId, Boolean isOwner, Long operatorId, Future<UpdateResult> future) {
     	
-        final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, status, entry_id, entry_datetime) " +
-                "VALUES(?, ?, 'A', ?, now())" +
+        final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, is_owner, status, entry_id, entry_datetime) " +
+                "VALUES(?, ?, ?, 'A', ?, now())" +
         		"ON DUPLICATE KEY UPDATE auth_user_id=?,acct_id=?";
         JsonArray params = new JsonArray();
         params.add(userId);
         params.add(acctId);
+        params.add(isOwner ? 1 : 0);
         params.add(operatorId);
         params.add(userId);
-        params.add(acctId);         
+        params.add(acctId); 
         
 		JDBCClient jdbcClient = this.getDataSource().getSqlClient();
 		jdbcClient.getConnection(conRes -> {
@@ -244,13 +247,14 @@ public class UserDAO extends OperatorDAO {
 				                logger.info("更新了" + num + "条记录.");
 				                logger.info(updateResult.toJson());
 
-				                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, acct_biz_unit_post_id, status, entry_id, entry_datetime) " +
-				                        "VALUES(?, ?, ?, ?, 'A', ?, now())";
+				                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, acct_biz_unit_post_id, d_auth_role_id, status, entry_id, entry_datetime) " +
+				                        "VALUES(?, ?, ?, ?, ?, 'A', ?, now())";
 				                JsonArray params2 = new JsonArray();
 				                params2.add(userId);
 				                params2.add(acctId);                
 				                params2.add(bizUnitId);
-				                params2.add(postId);                
+				                params2.add(postId);         
+				                params2.add(authRoleId);  
 				                params2.add(operatorId);
 
 				                Future<UpdateResult> innerFuture2 = Future.future();
@@ -303,13 +307,20 @@ public class UserDAO extends OperatorDAO {
 
 
 
-    public void update(Long userId, String name, String cell_no, String email, Future<UpdateResult> future) {
+    public void update(Long userId, String name, String encryPwd, String cell_no, String email, Future<UpdateResult> future) {
         JsonArray params = new JsonArray();
 
         String setClause = "";
         if(name != null && !name.trim().isEmpty()){
         	setClause = "name=?";
         	params.add(name);
+        }
+        if(encryPwd != null && !encryPwd.trim().isEmpty()){
+           	if(setClause.trim().isEmpty())
+        		setClause = "password=?";
+        	else
+        		setClause += ",password=?";
+        	params.add(encryPwd);
         }
         if(cell_no != null && !cell_no.trim().isEmpty()){
         	if(setClause.trim().isEmpty())
@@ -631,5 +642,28 @@ public class UserDAO extends OperatorDAO {
 	   });    	
     	
     }
+    
+    public void getOwnerUserByAcctId(Long acctId, Future<ResultSet> future) {
+        
+	   final String sql = "SELECT id,name,password,cell_no,email FROM view_acct_owner where acct_id=?";
+	   JsonArray params = new JsonArray();
+	   params.add(acctId);
+	
+	   Future<ResultSet> innerFuture = Future.future();
+	
+	   this.queryWithParams(sql, params, innerFuture);
+	
+	   innerFuture.setHandler(result -> {
+	       if (result.succeeded()) {
+		       	ResultSet resultSet = result.result();
+		       	future.complete(resultSet);	
+	       } else {
+	       		Throwable err = result.cause();								
+	            future.fail(err);                
+	       }
+	   });    	
+    	
+    }
+    
     
 }

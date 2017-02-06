@@ -2,6 +2,8 @@
 	"main": "otocloud.auth.AuthService",
 	"options": {
 		"config": {
+			"app_id": 8,
+			"version_id": 8,
 			"service_name": "otocloud-auth",
 			"api_register_server": {
 				"webserver_name": "121webserver-N01"

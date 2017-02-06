@@ -62,7 +62,10 @@ public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
         pageFuture.setHandler(ret -> {
             if (ret.failed()) {
-                msg.fail(4004, "查询的用户数据不存在,或无法查询用户的数据.");
+				Throwable err = ret.cause();
+				String errMsg = err.getMessage();
+				componentImpl.getLogger().error(errMsg, err);	
+				msg.fail(400, errMsg);
                 return;
             }
             
