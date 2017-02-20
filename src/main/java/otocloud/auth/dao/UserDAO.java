@@ -558,19 +558,7 @@ public class UserDAO extends OperatorDAO {
 	   params.add(startIndex);
 	   params.add(pageSize);
 	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
+	   this.queryWithParams(sql, params, future);
     	
     }   
 
@@ -582,19 +570,7 @@ public class UserDAO extends OperatorDAO {
 	   JsonArray params = new JsonArray();
 	   params.add(userName);
 	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
+	   this.queryWithParams(sql, params, future);
     	
     }
     
@@ -604,19 +580,7 @@ public class UserDAO extends OperatorDAO {
 	   JsonArray params = new JsonArray();
 	   params.add(cellNo);
 	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
+	   this.queryWithParams(sql, params, future);
     	
     }
     
@@ -626,20 +590,8 @@ public class UserDAO extends OperatorDAO {
 	   final String sql = "SELECT * FROM view_acct_user where auth_user_id=?";
 	   JsonArray params = new JsonArray();
 	   params.add(userId);
-	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
+
+	   this.queryWithParams(sql, params, future);
     	
     }
     
@@ -649,19 +601,7 @@ public class UserDAO extends OperatorDAO {
 	   JsonArray params = new JsonArray();
 	   params.add(acctId);
 	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
+	   this.queryWithParams(sql, params, future);
     	
     }
     

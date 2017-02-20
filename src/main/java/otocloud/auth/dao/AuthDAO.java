@@ -92,20 +92,8 @@ public class AuthDAO extends OperatorDAO {
 	   JsonArray params = new JsonArray();
 	   params.add(acct_biz_unit_post_id);
 	
-	   Future<ResultSet> innerFuture = Future.future();
-	
-	   this.queryWithParams(sql, params, innerFuture);
-	
-	   innerFuture.setHandler(result -> {
-	       if (result.succeeded()) {
-		       	ResultSet resultSet = result.result();
-		       	future.complete(resultSet);	
-	       } else {
-	       		Throwable err = result.cause();								
-	            future.fail(err);                
-	       }
-	   });    	
-    	
+	   this.queryWithParams(sql, params, future);
+   	
     }
     
     public void appPermissionVerify(Long acctId, Long appId, Long userId, Future<Boolean> future) {
