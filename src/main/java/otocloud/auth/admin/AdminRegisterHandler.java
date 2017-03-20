@@ -1,4 +1,4 @@
-package otocloud.auth.user;
+package otocloud.auth.admin;
 
 import javax.validation.ConstraintViolationException;
 
@@ -27,7 +27,7 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  * Created by zhangye on 2015-10-14.
  */
 @IgnoreAuthVerify
-public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
 	private static final String ADDRESS = "register";
 	
@@ -37,7 +37,7 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     private final StrongPasswordEncryptor passwordEncryptor;
 	
 
-    public UserRegisterHandler(OtoCloudComponentImpl componentImpl) {
+    public AdminRegisterHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
         
         passwordEncryptor = new StrongPasswordEncryptor();
@@ -120,7 +120,6 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     }
 
     
-    
 
     /* 
      * {
@@ -129,6 +128,10 @@ public class UserRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 	  mgr_post_id: IT管理员岗位ID
      * 	  auth_role_id: 对应的角色 规格
      * 	  user: {
+     * 		  name
+     * 		  password
+     * 		  cell_no
+     * 		  email
      * 	  }
      * }
      * 

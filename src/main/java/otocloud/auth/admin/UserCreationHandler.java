@@ -1,4 +1,4 @@
-package otocloud.auth.user;
+package otocloud.auth.admin;
 
 
 import javax.validation.ConstraintViolationException;
@@ -11,14 +11,15 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import otocloud.auth.AuthService;
 import otocloud.auth.common.ErrCode;
 import otocloud.auth.common.RSAUtil;
 import otocloud.auth.common.Required;
 import otocloud.auth.common.ViolationMessageBuilder;
 import otocloud.auth.dao.UserDAO;
-import otocloud.auth.AuthService;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
+import otocloud.framework.common.IgnoreAuthVerify;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
@@ -28,7 +29,7 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
  * 当管理员手动新增用户时调用.
  * zhangyef@yonyou.com on 2016-01-21.
  */
-
+@IgnoreAuthVerify
 public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
 	public static final String ADDRESS = "create";
@@ -97,6 +98,10 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 	  post_id: 岗位ID
      * 	  auth_role_id: 对应的角色 规格
      * 	  user: {
+     *        name
+     * 		  password
+     * 		  cell_no
+     * 		  email
      * 	  }
      * }
      * 
@@ -118,7 +123,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         Long acctId = content.getLong("acct_id");
         Long bizUnitId = content.getLong("biz_unit_id");
         Long mgrPostId = content.getLong("post_id");
-        Long authRoleId = content.getLong("auth_role_id");
+        Long authRoleId = content.getLong("auth_role_id", 0L);
 
         JsonObject userInfo = content.getJsonObject("user");
         //从Session中取出当前登录的用户ID
@@ -185,15 +190,13 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                         try{                        
                         	msg.reply(u);
                         	
+                        	Long userId = u.getLong("id");
+                        	
                             //生成激活码
-                            String activateCode = generateActivationCode(u);
+                            String activateCode = generateActivationCode(userId, acctId);
                             JsonObject activateInfo = new JsonObject();
                             activateInfo.put("acct_id", acctId);
-                            //activateInfo.put("manager_id", managerId); //企业管理员ID
-                            activateInfo.put("user_id", u.getLong("id"));
-                            activateInfo.put("user_name", u.getString("name"));
-                            activateInfo.put("cell_no", u.getString("cell_no"));
-                            activateInfo.put("email", u.getString("email"));
+                            activateInfo.put("user_id", userId);
                             activateInfo.put("activation_code", activateCode);
 
                             //将一次性激活码存入数据库
@@ -248,18 +251,18 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * @param user
      * @return
      */
-    private String generateActivationCode(JsonObject user) {
-        //将激活码与userId,临时放入mongo中.
+    private String generateActivationCode(Long userId, Long acctId) {
+/*        //将激活码与userId,临时放入mongo中.
         //接到激活请求时,将mongo中的激活码删除.更新User的状态为A
-        String name = user.getString("user_name");
+        String name = user.getString("name");
         String cellNo = user.getString("cell_no");
-        String email = user.getString("email");
+        String email = user.getString("email");*/
 
-        String md1 = DigestUtils.md5Hex(name);
-        String md2 = DigestUtils.md5Hex(md1 + cellNo);
-        String md3 = DigestUtils.md5Hex(md2 + email);
+        String md1 = DigestUtils.md5Hex(userId.toString());
+        String md2 = DigestUtils.md5Hex(md1 + acctId.toString());
+        //String md3 = DigestUtils.md5Hex(md2 + email);
 
-        return md3;
+        return md2;
     }
 
     /**

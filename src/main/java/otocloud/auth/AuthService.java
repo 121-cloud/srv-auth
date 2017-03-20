@@ -2,8 +2,8 @@ package otocloud.auth;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import otocloud.auth.admin.AdminComponent;
 import otocloud.auth.post.AuthenticationComponent;
-import otocloud.auth.user.UserComponent;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudComponent;
 import otocloud.framework.core.OtoCloudService;
@@ -152,7 +152,7 @@ public class AuthService extends OtoCloudServiceForVerticleImpl {
     public List<OtoCloudComponent> createServiceComponents() {
         List<OtoCloudComponent> retCloudComponents = new ArrayList<>();
 
-        retCloudComponents.add(new UserComponent());
+        retCloudComponents.add(new AdminComponent());
         retCloudComponents.add(new AuthenticationComponent());
         
         //erp连接组件，暂时注销

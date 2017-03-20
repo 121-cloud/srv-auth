@@ -1,4 +1,4 @@
-package otocloud.auth.user;
+package otocloud.auth.admin;
 
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
@@ -20,6 +20,7 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
 public class UserUpdateHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
+
 	private static final String ADDRESS = "update";
 	
     /**
@@ -71,13 +72,13 @@ public class UserUpdateHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 		
 		Long userId = Long.parseLong(params.getString("id"));
     	
-        JsonObject content = msg.body().getJsonObject("content");
+        JsonObject content = body.getJsonObject("content");
     	
     	//Long userId = content.getLong("id", 0L);
-    	String name = content.getString("name", null);
+    	String name = content.getString("name", "");
     	String pwd = content.getString("password", "");
-    	String cell_no = content.getString("cell_no", null);
-    	String email = content.getString("email", null);    
+    	String cell_no = content.getString("cell_no", "");
+    	String email = content.getString("email", "");    
     	
         //解密来自客户端的密码
         String plainText = RSAUtil.decrypt(pwd, "ufsoft*123");

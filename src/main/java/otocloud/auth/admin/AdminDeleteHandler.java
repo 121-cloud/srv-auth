@@ -1,4 +1,4 @@
-package otocloud.auth.user;
+package otocloud.auth.admin;
 
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
@@ -13,11 +13,11 @@ import otocloud.framework.core.OtoCloudEventHandlerImpl;
 /**
  * Created by zhangye on 2015-10-27.
  */
-public class UserDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+public class AdminDeleteHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
 	public static final String ADDRESS = "delete";
 
-    public UserDeleteHandler(OtoCloudComponentImpl componentImpl) {
+    public AdminDeleteHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
 

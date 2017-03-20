@@ -15,8 +15,7 @@
 					"port": 6379
 				}
 			},	
-			"mongo_client": 
-			{
+			"mongo_client": {
 				"config": 
 				{
 					"db_name": "otocloud-auth",

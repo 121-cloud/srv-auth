@@ -1,4 +1,4 @@
-package otocloud.auth.user;
+package otocloud.auth.admin;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -38,7 +38,7 @@ import otocloud.framework.core.session.SessionStore;
  */
 
 @IgnoreAuthVerify
-public class UserAuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+public class AuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
 	public static final String ADDRESS = "authenticate";
 
@@ -46,7 +46,7 @@ public class UserAuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObje
 
 	//private String USERS_ONLINE = "UsersOnline";
 
-	public UserAuthenticationHandler(OtoCloudComponentImpl componentImpl) {
+	public AuthenticationHandler(OtoCloudComponentImpl componentImpl) {
 		super(componentImpl);
 
 		passwordEncryptor = new StrongPasswordEncryptor();
