@@ -63,6 +63,55 @@ public class UserDAO extends OperatorDAO {
         });
     }
     
+    public void joinToAcct(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Long postId, Long authRoleId, Long auth_user_id, Future<JsonObject> future) {
+        
+        Long entryId = user.getLong("entry_id", 0L);
+
+		JDBCClient jdbcClient = this.getDataSource().getSqlClient();
+		jdbcClient.getConnection(conRes -> {
+			if (conRes.succeeded()) {				
+				SQLConnection conn = conRes.result();        
+		        TransactionConnection.createTransactionConnection(conn, transConnRet->{
+					if(transConnRet.succeeded()){
+						TransactionConnection transConn = transConnRet.result();
+
+				                Future<UpdateResult> addAcctPostfuture = Future.future();		
+				                
+				                addAcctPost(transConn, acctId, bizUnitId, postId, authRoleId, auth_user_id, isOwner, entryId, addAcctPostfuture);
+				                
+				                addAcctPostfuture.setHandler(addAcctPostRet -> {
+						            if (addAcctPostRet.succeeded()) {
+				                    	transConn.commitAndClose(closedRet->{
+				                    		future.complete(user);
+				                    	});
+						            }else{						            	
+						            	Throwable err = addAcctPostRet.cause();
+						                future.fail(err);
+						                logger.error("AuthService 无法增加新用户.事务回滚" + err.getMessage());
+										transConn.rollbackAndClose(closedRet->{												
+											future.fail(err);
+										});	
+						            }
+				                });
+						
+					}else{
+						Throwable err = transConnRet.cause();
+						String errMsg = err.getMessage();
+						logger.error(errMsg, err);	
+						conn.close(closedRet->{
+							future.fail(err);
+						});	
+					}
+		        });
+			}else{
+				Throwable err = conRes.cause();
+            	future.fail(err);
+                logger.error("连接打开失败。" + err.getMessage());
+		    }
+		});
+
+    }
+    
     
     public void create(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Long postId, Long authRoleId, Future<JsonObject> future) {
 

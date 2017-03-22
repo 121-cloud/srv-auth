@@ -170,7 +170,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                 if (exists) {
 					String errMsg = "手机号已经存在, 不能重复注册.";
 					componentImpl.getLogger().error(errMsg);	
-					msg.fail(400, errMsg);
+					msg.fail(410, errMsg);
                     return;
                 }
 
