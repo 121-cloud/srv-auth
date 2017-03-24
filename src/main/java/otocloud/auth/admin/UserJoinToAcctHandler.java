@@ -128,7 +128,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
         createUserfuture.setHandler(userResult -> {
             if (userResult.succeeded()) {
             	JsonObject u = userResult.result();
-                this.componentImpl.getLogger().info("用户创建成功, userID：" + u.getLong("id"));
+                //this.componentImpl.getLogger().info("用户创建成功, userID：" + u.getLong("id"));
                 
                 try{                        
                 	msg.reply(u);

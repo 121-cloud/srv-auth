@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import otocloud.auth.dao.UserDAO;
 import otocloud.common.ActionURI;
-import otocloud.common.SessionSchema;
 import otocloud.framework.core.HandlerDescriptor;
 import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
@@ -18,17 +17,17 @@ import java.util.List;
  * 用户列表的分页查询
  * zhangyef@yonyou.com on 2015-12-18.
  */
-public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
+public class UserQueryForAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 
-	private static final String ADDRESS = "query";
+	private static final String ADDRESS = "query-for-acct";
 	
-    public UserQueryHandler(OtoCloudComponentImpl componentImpl) {
+    public UserQueryForAcctHandler(OtoCloudComponentImpl componentImpl) {
         super(componentImpl);
     }
     
     /* 
      * {
-     * 	  biz_unit_id: 业务单元ID
+     * 	  acct_id: 
      * 	  paging: {
 	 *	      sort_field: 排序字段，只支持单个字段,
 	 *	      sort_direction: 1：升序，-1：降序,
@@ -47,18 +46,15 @@ public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         JsonObject content = body.getJsonObject("content");
 
         //Long acctId = content.getLong("acct_id");
-        Long bizUnitId = content.getLong("biz_unit_id");
+        Long acct_id = content.getLong("acct_id");
         JsonObject pagingOptions = content.getJsonObject("paging");
         Integer pageSize = pagingOptions.getInteger("page_size");
 
-        JsonObject session = msg.getSession();
-        
-        Long acctId = Long.parseLong(session.getString(SessionSchema.ORG_ACCT_ID));
 
         Future<ResultSet> pageFuture = Future.future();
 
         UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
-        userDAO.getUserListByPage(acctId, bizUnitId, pagingOptions, pageFuture);
+        userDAO.getUserListForAcctByPage(acct_id, pagingOptions, pageFuture);
 
         pageFuture.setHandler(ret -> {
             if (ret.failed()) {
@@ -72,7 +68,7 @@ public class UserQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
             List<JsonObject> retDataArrays = ret.result().getRows();
             
             Future<Integer> countFuture = Future.future();
-            userDAO.countUser(acctId, bizUnitId, countFuture);
+            userDAO.countUserForAcct(acct_id, countFuture);
             countFuture.setHandler(countUserRet -> {
                 if (countUserRet.failed()) {                   
     				Throwable errThrowable = countUserRet.cause();

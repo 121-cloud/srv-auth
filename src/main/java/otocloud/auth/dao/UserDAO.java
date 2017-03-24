@@ -531,11 +531,73 @@ public class UserDAO extends OperatorDAO {
                 future);
     }
     
-    public void isRegisteredCellNo(String cellNo, Future<Boolean> future) {
+    public void isRegisteredCellNo(String cellNo, Future<Long> future) {
              
-        final String sql = "SELECT count(*) as num FROM auth_user WHERE cell_no=?";
+        final String sql = "SELECT id FROM auth_user WHERE cell_no=?";
         JsonArray params = new JsonArray();
         params.add(cellNo);
+
+        Future<ResultSet> innerFuture = Future.future();
+
+        this.queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	if(retDataArrays != null && retDataArrays.size() > 0){
+            		//Long num = retDataArrays.get(0).getLong("num");
+            		Long id = retDataArrays.get(0).getLong("id");            		
+            		future.complete(id);            		
+            	}else{
+            		future.complete(-1L);
+            	}
+
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
+    
+    public void isRegisteredUser(String userName, String cellNo, Future<Long> future) {
+        
+        final String sql = "SELECT id FROM auth_user WHERE name=? OR cell_no=?";
+        JsonArray params = new JsonArray();
+        params.add(userName);
+        params.add(cellNo);
+
+        Future<ResultSet> innerFuture = Future.future();
+
+        this.queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	if(retDataArrays != null && retDataArrays.size() > 0){
+            		//Long num = retDataArrays.get(0).getLong("num");
+            		Long id = retDataArrays.get(0).getLong("id");            		
+            		future.complete(id);            		
+            	}else{
+            		future.complete(-1L);
+            	}
+
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
+    
+    public void existUserInAcct(Long auth_user_id, Long acct_id, Future<Boolean> future) {
+        
+        final String sql = "SELECT count(*) as num FROM acct_user WHERE acct_id=? AND auth_user_id=?";
+        JsonArray params = new JsonArray();
+        params.add(acct_id);
+        params.add(auth_user_id);
 
         Future<ResultSet> innerFuture = Future.future();
 
@@ -563,12 +625,13 @@ public class UserDAO extends OperatorDAO {
         });
 
 	}
+    
 
-    public void countUser(Long acctId, Long bizUnitId, Future<Integer> future) {
+    public void countUser(Long bizUnitId, Future<Integer> future) {
         
-        final String sql = "SELECT count(id) as total_num FROM view_acct_user_post where acct_id=? and d_acct_biz_unit_id=?";
+        final String sql = "SELECT count(id) as total_num FROM view_acct_user_post where d_acct_biz_unit_id=?";
         JsonArray params = new JsonArray();
-        params.add(acctId);
+        //params.add(acctId);
         params.add(bizUnitId);
 
         Future<ResultSet> innerFuture = Future.future();
@@ -589,7 +652,7 @@ public class UserDAO extends OperatorDAO {
 
 	}
     
-    public void getUserListByPage(Long acctId, Long bizUnitId, JsonObject pagingOptions, Future<ResultSet> future) {
+    public void getUserListByPage(Long bizUnitId, JsonObject pagingOptions, Future<ResultSet> future) {
        
     	String sortField = pagingOptions.getString("sort_field");
     	Integer sortDirection = pagingOptions.getInteger("sort_direction");
@@ -599,10 +662,9 @@ public class UserDAO extends OperatorDAO {
         int pageSize = pagingOptions.getInteger("page_size");
         int startIndex = (pageNo-1) * pageSize;
        
-	   final String sql = "SELECT * FROM view_acct_user_post where acct_id=? and d_acct_biz_unit_id=? order by " +
+	   final String sql = "SELECT * FROM view_acct_user_post where d_acct_biz_unit_id=? order by " +
 			   sortField + " " + sortStr + " limit ?,?";
 	   JsonArray params = new JsonArray();
-	   params.add(acctId);
 	   params.add(bizUnitId);
 	   params.add(startIndex);
 	   params.add(pageSize);
@@ -610,7 +672,51 @@ public class UserDAO extends OperatorDAO {
 	   this.queryWithParams(sql, params, future);
     	
     }   
+    
+    public void getUserListForAcctByPage(Long acctId, JsonObject pagingOptions, Future<ResultSet> future) {
+        
+    	String sortField = pagingOptions.getString("sort_field");
+    	Integer sortDirection = pagingOptions.getInteger("sort_direction");
+    	String sortStr = (sortDirection==1)?"ASC":"DESC";    
+    	
+        int pageNo = pagingOptions.getInteger("page_number");
+        int pageSize = pagingOptions.getInteger("page_size");
+        int startIndex = (pageNo-1) * pageSize;
+       
+	   final String sql = "SELECT * FROM view_acct_user2 where acct_id=? order by " +
+			   sortField + " " + sortStr + " limit ?,?";
+	   JsonArray params = new JsonArray();
+	   params.add(acctId);	   
+	   params.add(startIndex);
+	   params.add(pageSize);
+	
+	   this.queryWithParams(sql, params, future);
+    	
+    }   
 
+    public void countUserForAcct(Long acctId, Future<Integer> future) {
+        
+        final String sql = "SELECT count(*) as total_num FROM view_acct_user2 where acct_id=?";
+        JsonArray params = new JsonArray();
+        params.add(acctId);
+
+        Future<ResultSet> innerFuture = Future.future();
+
+        queryWithParams(sql, params, innerFuture);
+
+        innerFuture.setHandler(result -> {
+            if (result.succeeded()) {
+            	ResultSet resultSet = result.result();
+            	List<JsonObject> retDataArrays = resultSet.getRows();
+            	Integer totalNum = retDataArrays.get(0).getInteger("total_num");
+            	future.complete(totalNum);
+            } else {
+            	Throwable err = result.cause();								
+                future.fail(err);                
+            }
+        });
+
+	}
     
     
     public void getUserByName(String userName, Future<ResultSet> future) {

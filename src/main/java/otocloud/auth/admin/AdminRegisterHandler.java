@@ -181,10 +181,11 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
             //加密用户密码并存储
             userInfo.put("password", encryptPassword(plainText));
 
-            Future<Boolean> verifyFuture = Future.future();
-            //检查手机号字段是否重复.(重复表示已经注册过)
+            Future<Long> verifyFuture = Future.future();
+            //检查用戶名和手机号字段是否重复.(重复表示已经注册过)
             UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
-            userDAO.isRegisteredCellNo(cellNo, verifyFuture);
+            
+            userDAO.isRegisteredUser(userInfo.getString("name", ""), cellNo, verifyFuture);
             
             verifyFuture.setHandler(ret -> {
                 if (ret.failed()) {
@@ -195,10 +196,10 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                     return;
                 }
 
-                boolean exists = ret.result();
+                boolean exists = (ret.result() > 0L) ? true : false;
                 //手机号已经存在.
                 if (exists) {
-					String errMsg = "手机号已经存在, 不能重复注册.";
+					String errMsg = "用戶名或手机号已经存在, 不能重复注册.";
 					componentImpl.getLogger().error(errMsg);	
 					msg.fail(400, errMsg);
                     return;

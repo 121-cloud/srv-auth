@@ -151,10 +151,10 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
             //加密用户密码并存储
             userInfo.put("password", encryptPassword(plainText));
 
-            Future<Boolean> verifyFuture = Future.future();
-            //检查手机号字段是否重复.(重复表示已经注册过)
+            Future<Long> verifyFuture = Future.future();
+            //检查用戶名和手机号字段是否重复.(重复表示已经注册过)
             UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
-            userDAO.isRegisteredCellNo(cellNo, verifyFuture);
+            userDAO.isRegisteredUser(userInfo.getString("name", ""), cellNo, verifyFuture);
             
             verifyFuture.setHandler(ret -> {
                 if (ret.failed()) {
@@ -164,64 +164,115 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 					msg.fail(400, errMsg);
                     return;
                 }
-
-                boolean exists = ret.result();
-                //手机号已经存在.
-                if (exists) {
-					String errMsg = "手机号已经存在, 不能重复注册.";
-					componentImpl.getLogger().error(errMsg);	
-					msg.fail(410, errMsg);
-                    return;
-                }
-
-                Future<JsonObject> createUserfuture = Future.future();
-                userDAO.create(userInfo, acctId, false, bizUnitId, mgrPostId, authRoleId, createUserfuture);
-                createUserfuture.setHandler(userResult -> {
-                    if (userResult.succeeded()) {
-                    	JsonObject u = userResult.result();
-                        //生成OpenID
-                        /*String openId = UUID.randomUUID().toString();
-                            u.setOpenID(openId);
-*/
-                        //usersLoggedIn.put(openId, u);
-
-                        this.componentImpl.getLogger().info("用户创建成功, userID：" + u.getLong("id"));
-                        
-                        try{                        
-                        	msg.reply(u);
+                
+                Long authUserId = ret.result();
+                if(authUserId > 0L){
+                	Future<Boolean> existUserInAcctFuture = Future.future();
+                	userDAO.existUserInAcct(authUserId, acctId, existUserInAcctFuture);
+                	
+                	existUserInAcctFuture.setHandler(existUserInAcctRet -> {
+                        if (existUserInAcctRet.failed()) {
+        					Throwable err = existUserInAcctRet.cause();
+        					String errMsg = err.getMessage();
+        					componentImpl.getLogger().error(errMsg, err);	
+        					msg.fail(100, errMsg);
+                            return;
+                        }else{
+                        	if(existUserInAcctRet.result()){
+                        		String errMsg = "用戶名或手机号已经存在, 不能重复注册.";
+            					componentImpl.getLogger().error(errMsg);	
+            					msg.fail(100, errMsg);
+                                return;
+                        	}else{
+                        		
+                        		//用户已存在，则加入此企业
+                        		userInfo.put("auth_user_id", authUserId);
+                        		
+                                Future<JsonObject> joinToAcctUserfuture = Future.future();
+                                userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, mgrPostId, authRoleId, authUserId, joinToAcctUserfuture);
+                                joinToAcctUserfuture.setHandler(joinToAcctResult -> {
+                                    if (joinToAcctResult.succeeded()) {
+                                    	
+                                    	msg.reply(userInfo);
+                                    	
+        	                            //生成激活码
+        	                            String activateCode = generateActivationCode(authUserId, acctId);
+        	                            JsonObject activateInfo = new JsonObject();
+        	                            activateInfo.put("acct_id", acctId);
+        	                            activateInfo.put("user_id", authUserId);
+        	                            activateInfo.put("activation_code", activateCode);
+        	
+        	                            //将一次性激活码存入数据库
+        	                            AuthService authService = (AuthService)this.componentImpl.getService();
+        	                            authService.getAuthSrvMongoDataSource().getMongoClient().insert(USERS_ACTIVATION, activateInfo, insertRet -> {
+        	                                if(insertRet.failed()){                                    
+        	                    				Throwable errThrowable = insertRet.cause();
+        	                    				String errMsgString = errThrowable.getMessage();
+        	                    				this.componentImpl.getLogger().error("无法将用户激活码保存到 Mongo 数据库中." + errMsgString, errThrowable);
+        	                    				msg.fail(100, errMsgString);
+        	                                }
+        	                            });
+                                    	
+                                    }else{
+                    					Throwable err = joinToAcctResult.cause();
+                    					String errMsg = err.getMessage();
+                    					componentImpl.getLogger().error(errMsg, err);	
+                    					msg.fail(100, errMsg);
+                                        return;
+                                    }
+                                });
+                        		
+                        	}                  	
                         	
-                        	Long userId = u.getLong("id");
-                        	
-                            //生成激活码
-                            String activateCode = generateActivationCode(userId, acctId);
-                            JsonObject activateInfo = new JsonObject();
-                            activateInfo.put("acct_id", acctId);
-                            activateInfo.put("user_id", userId);
-                            activateInfo.put("activation_code", activateCode);
-
-                            //将一次性激活码存入数据库
-                            AuthService authService = (AuthService)this.componentImpl.getService();
-                            authService.getAuthSrvMongoDataSource().getMongoClient().insert(USERS_ACTIVATION, activateInfo, insertRet -> {
-                                if(insertRet.failed()){                                    
-                    				Throwable errThrowable = insertRet.cause();
-                    				String errMsgString = errThrowable.getMessage();
-                    				this.componentImpl.getLogger().error("无法将用户激活码保存到 Mongo 数据库中." + errMsgString, errThrowable);
-                    				msg.fail(100, errMsgString);
-                                }
-                            });
-                        	
-                        }catch (Exception e) {
-                			String errMsgString = e.getMessage();
-                			this.componentImpl.getLogger().error(errMsgString, e);
-                			msg.fail(100, errMsgString);		
                         }
-                    } else {
-        				Throwable errThrowable = userResult.cause();
-        				String errMsgString = errThrowable.getMessage();
-        				this.componentImpl.getLogger().error("用户创建失败." + errMsgString, errThrowable);
-        				msg.fail(100, errMsgString);		
-                    }
-                });
+                	});
+                }else{
+	
+
+	                Future<JsonObject> createUserfuture = Future.future();
+	                userDAO.create(userInfo, acctId, false, bizUnitId, mgrPostId, authRoleId, createUserfuture);
+	                createUserfuture.setHandler(userResult -> {
+	                    if (userResult.succeeded()) {
+	                    	JsonObject u = userResult.result();
+	
+	                        this.componentImpl.getLogger().info("用户创建成功, userID：" + u.getLong("id"));
+	                        
+	                        try{                        
+	                        	msg.reply(u);
+	                        	
+	                        	Long userId = u.getLong("id");
+	                        	
+	                            //生成激活码
+	                            String activateCode = generateActivationCode(userId, acctId);
+	                            JsonObject activateInfo = new JsonObject();
+	                            activateInfo.put("acct_id", acctId);
+	                            activateInfo.put("user_id", userId);
+	                            activateInfo.put("activation_code", activateCode);
+	
+	                            //将一次性激活码存入数据库
+	                            AuthService authService = (AuthService)this.componentImpl.getService();
+	                            authService.getAuthSrvMongoDataSource().getMongoClient().insert(USERS_ACTIVATION, activateInfo, insertRet -> {
+	                                if(insertRet.failed()){                                    
+	                    				Throwable errThrowable = insertRet.cause();
+	                    				String errMsgString = errThrowable.getMessage();
+	                    				this.componentImpl.getLogger().error("无法将用户激活码保存到 Mongo 数据库中." + errMsgString, errThrowable);
+	                    				msg.fail(100, errMsgString);
+	                                }
+	                            });
+	                        	
+	                        }catch (Exception e) {
+	                			String errMsgString = e.getMessage();
+	                			this.componentImpl.getLogger().error(errMsgString, e);
+	                			msg.fail(100, errMsgString);		
+	                        }
+	                    } else {
+	        				Throwable errThrowable = userResult.cause();
+	        				String errMsgString = errThrowable.getMessage();
+	        				this.componentImpl.getLogger().error("用户创建失败." + errMsgString, errThrowable);
+	        				msg.fail(100, errMsgString);		
+	                    }
+	                });
+                }
             });
 
 

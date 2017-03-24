@@ -45,7 +45,7 @@ public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     	String cell_no = content.getString("cell_no", null);
     	
     	
-        Future<Boolean> verifyFuture = Future.future();
+        Future<Long> verifyFuture = Future.future();
         //检查手机号字段是否重复.(重复表示已经注册过)
         UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
         userDAO.isRegisteredCellNo(cell_no, verifyFuture);
@@ -59,7 +59,7 @@ public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                 return;
             }
 
-            boolean exists = ret.result();
+            boolean exists = (ret.result() > 0L) ? true : false;
             JsonObject reply = new JsonObject();
             reply.put("exists", exists);
 
