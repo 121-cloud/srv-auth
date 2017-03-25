@@ -43,6 +43,7 @@ public class AdminComponent extends OtoCloudComponentImpl {
         ret.add(new UserQueryForAcctHandler(this));
         ret.add(new UserQueryForBizUnitHandler(this));
         ret.add(new UserJoinToAcctHandler(this));
+		ret.add(new UserPostQueryHandler(this));
 
         return ret;
     }
