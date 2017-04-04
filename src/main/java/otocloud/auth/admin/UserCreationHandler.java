@@ -95,6 +95,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * {
      * 	  acct_id: 租户ID
      * 	  biz_unit_id: 业务单元ID
+     * 	  d_is_global_bu: 是否全局业务单元
      * 	  post_id: 岗位ID
      * 	  auth_role_id: 对应的角色 规格
      * 	  user: {
@@ -122,6 +123,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         JsonObject content = body.getJsonObject("content");
         Long acctId = content.getLong("acct_id");
         Long bizUnitId = content.getLong("biz_unit_id");
+        Boolean d_is_global_bu = content.getBoolean("d_is_global_bu");
         Long mgrPostId = content.getLong("post_id");
         Long authRoleId = content.getLong("auth_role_id", 0L);
 
@@ -189,7 +191,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                         		userInfo.put("auth_user_id", authUserId);
                         		
                                 Future<JsonObject> joinToAcctUserfuture = Future.future();
-                                userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, mgrPostId, authRoleId, authUserId, joinToAcctUserfuture);
+                                userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, d_is_global_bu, mgrPostId, authRoleId, authUserId, joinToAcctUserfuture);
                                 joinToAcctUserfuture.setHandler(joinToAcctResult -> {
                                     if (joinToAcctResult.succeeded()) {
                                     	
@@ -230,7 +232,7 @@ public class UserCreationHandler extends OtoCloudEventHandlerImpl<JsonObject> {
 	
 
 	                Future<JsonObject> createUserfuture = Future.future();
-	                userDAO.create(userInfo, acctId, false, bizUnitId, mgrPostId, authRoleId, createUserfuture);
+	                userDAO.create(userInfo, acctId, false, bizUnitId, d_is_global_bu, mgrPostId, authRoleId, createUserfuture);
 	                createUserfuture.setHandler(userResult -> {
 	                    if (userResult.succeeded()) {
 	                    	JsonObject u = userResult.result();

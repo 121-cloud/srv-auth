@@ -87,6 +87,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
      * {
      * 	  acct_id: 租户ID
      * 	  biz_unit_id: 业务单元ID
+     * 	  d_is_global_bu: 是否全局业务单元
      * 	  post_id: 岗位ID
      * 	  auth_role_id: 对应的角色 规格
      * 	  auth_user_id: 
@@ -109,6 +110,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
         JsonObject content = body.getJsonObject("content");
         Long acctId = content.getLong("acct_id");
         Long bizUnitId = content.getLong("biz_unit_id");
+        Boolean d_is_global_bu = content.getBoolean("d_is_global_bu");
         Long mgrPostId = content.getLong("post_id");
         Long authRoleId = content.getLong("auth_role_id", 0L);
         Long auth_user_id = content.getLong("auth_user_id");
@@ -124,7 +126,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
 
         UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
         Future<JsonObject> createUserfuture = Future.future();
-        userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, mgrPostId, authRoleId, auth_user_id, createUserfuture);
+        userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, d_is_global_bu, mgrPostId, authRoleId, auth_user_id, createUserfuture);
         createUserfuture.setHandler(userResult -> {
             if (userResult.succeeded()) {
             	JsonObject u = userResult.result();

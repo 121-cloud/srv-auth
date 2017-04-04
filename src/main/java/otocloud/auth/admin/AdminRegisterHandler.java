@@ -206,7 +206,7 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                 }
 
                 Future<JsonObject> createUserfuture = Future.future();
-                userDAO.create(userInfo, acctId, true, bizUnitId, mgrPostId, authRoleId, createUserfuture);
+                userDAO.create(userInfo, acctId, true, bizUnitId, true, mgrPostId, authRoleId, createUserfuture);
                 createUserfuture.setHandler(userResult -> {
                     if (userResult.succeeded()) {
                     	JsonObject u = userResult.result();
