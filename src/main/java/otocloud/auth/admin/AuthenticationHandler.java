@@ -1,5 +1,13 @@
 package otocloud.auth.admin;
 
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.sql.ResultSet;
+import io.vertx.ext.sql.UpdateResult;
+
 import java.util.List;
 import java.util.ListIterator;
 import java.util.UUID;
@@ -9,13 +17,6 @@ import javax.validation.ConstraintViolationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
-import io.vertx.ext.sql.UpdateResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.sql.ResultSet;
 import otocloud.auth.common.ErrCode;
 import otocloud.auth.common.RSAUtil;
 import otocloud.auth.common.Required;
@@ -26,8 +27,8 @@ import otocloud.auth.dao.UserDAO;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
 import otocloud.framework.common.IgnoreAuthVerify;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 import otocloud.framework.core.session.Session;
@@ -102,7 +103,7 @@ public class AuthenticationHandler extends OtoCloudEventHandlerImpl<JsonObject> 
      * 
      */
 	@Override
-	public void handle(OtoCloudBusMessage<JsonObject> msg) {
+	public void handle(CommandMessage<JsonObject> msg) {
 
 		this.componentImpl.getLogger().info("接收到用户登录请求,开始验证用户登录信息格式.");
 

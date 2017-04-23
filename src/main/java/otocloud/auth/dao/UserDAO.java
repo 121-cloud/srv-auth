@@ -63,7 +63,7 @@ public class UserDAO extends OperatorDAO {
         });
     }
     
-    public void joinToAcct(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Boolean d_is_global_bu, Long postId, Long authRoleId, Long auth_user_id, Future<JsonObject> future) {
+    public void joinToAcct(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Long d_org_role_id, Boolean d_is_global_bu, Long postId, Long authRoleId, Long auth_user_id, Future<JsonObject> future) {
         
         Long entryId = user.getLong("entry_id", 0L);
 
@@ -77,7 +77,7 @@ public class UserDAO extends OperatorDAO {
 
 				                Future<UpdateResult> addAcctPostfuture = Future.future();		
 				                
-				                addAcctPost(transConn, acctId, bizUnitId, d_is_global_bu, postId, authRoleId, auth_user_id, isOwner, entryId, addAcctPostfuture);
+				                addAcctPost(transConn, acctId, bizUnitId, d_org_role_id, d_is_global_bu, postId, authRoleId, auth_user_id, isOwner, entryId, addAcctPostfuture);
 				                
 				                addAcctPostfuture.setHandler(addAcctPostRet -> {
 						            if (addAcctPostRet.succeeded()) {
@@ -113,7 +113,7 @@ public class UserDAO extends OperatorDAO {
     }
     
     
-    public void create(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Boolean d_is_global_bu, Long postId, Long authRoleId, Future<JsonObject> future) {
+    public void create(JsonObject user, Long acctId, Boolean isOwner, Long bizUnitId, Long d_org_role_id, Boolean d_is_global_bu, Long postId, Long authRoleId, Future<JsonObject> future) {
 
         final String insertUserSQL = "INSERT INTO auth_user(" +
                 "name, password, cell_no, email, status, entry_id, entry_datetime) " +
@@ -153,7 +153,7 @@ public class UserDAO extends OperatorDAO {
 				                
 				                Future<UpdateResult> addAcctPostfuture = Future.future();		
 				                
-				                addAcctPost(transConn, acctId, bizUnitId, d_is_global_bu, postId, authRoleId, userId, isOwner, entryId, addAcctPostfuture);
+				                addAcctPost(transConn, acctId, bizUnitId, d_org_role_id, d_is_global_bu, postId, authRoleId, userId, isOwner, entryId, addAcctPostfuture);
 				                
 				                addAcctPostfuture.setHandler(addAcctPostRet -> {
 						            if (addAcctPostRet.succeeded()) {
@@ -201,7 +201,7 @@ public class UserDAO extends OperatorDAO {
     }
     
     
-    private void addAcctPost(TransactionConnection transConn, Long acctId, Long bizUnitId, Boolean d_is_global_bu, Long postId, Long authRoleId, Long userId, Boolean isOwner, Long operatorId, Future<UpdateResult> future) {
+    private void addAcctPost(TransactionConnection transConn, Long acctId, Long bizUnitId, Long d_org_role_id, Boolean d_is_global_bu, Long postId, Long authRoleId, Long userId, Boolean isOwner, Long operatorId, Future<UpdateResult> future) {
     	
         final String insertAcctSQL = "INSERT INTO acct_user(auth_user_id, acct_id, is_owner, status, entry_id, entry_datetime) " +
                 "VALUES(?, ?, ?, 'A', ?, now())" +
@@ -225,12 +225,13 @@ public class UserDAO extends OperatorDAO {
                 logger.info("更新了" + num + "条记录.");
                 logger.info(updateResult.toJson());
 
-                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, d_is_global_bu, acct_biz_unit_post_id, d_auth_role_id, status, entry_id, entry_datetime) " +
-                        "VALUES(?, ?, ?, ?, ?, ?, 'A', ?, now())";
+                final String insertPostSQL = "INSERT INTO acct_user_post(auth_user_id, acct_id, d_acct_biz_unit_id, d_org_role_id, d_is_global_bu, acct_biz_unit_post_id, d_auth_role_id, status, entry_id, entry_datetime) " +
+                        "VALUES(?, ?, ?, ?, ?, ?, ?, 'A', ?, now())";
                 JsonArray params2 = new JsonArray();
                 params2.add(userId);
                 params2.add(acctId);                
                 params2.add(bizUnitId);
+                params2.add(d_org_role_id);
                 params2.add(d_is_global_bu);
                 params2.add(postId);         
                 params2.add(authRoleId);  

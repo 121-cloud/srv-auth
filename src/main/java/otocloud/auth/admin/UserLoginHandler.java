@@ -4,8 +4,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import otocloud.common.ActionURI;
 import otocloud.framework.common.IgnoreAuthVerify;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 import otocloud.framework.core.session.Session;
@@ -49,7 +49,7 @@ public class UserLoginHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 
      */    
     @Override
-    public void handle(OtoCloudBusMessage<JsonObject> msg) {
+    public void handle(CommandMessage<JsonObject> msg) {
     	
 		String token = msg.headers().get("token");	
      	

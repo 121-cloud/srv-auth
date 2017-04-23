@@ -6,8 +6,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.ResultSet;
 import otocloud.auth.dao.AuthDAO;
 import otocloud.common.ActionURI;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
@@ -25,7 +25,7 @@ public class ActivityAuthQueryHandler extends OtoCloudEventHandlerImpl<JsonObjec
 		}
      */
     @Override
-    public void handle(OtoCloudBusMessage<JsonObject> msg) {
+    public void handle(CommandMessage<JsonObject> msg) {
         
         JsonObject body = msg.body();
         //JsonObject session = body.getJsonObject(SessionSchema.SESSION);

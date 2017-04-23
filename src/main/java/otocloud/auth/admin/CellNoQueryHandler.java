@@ -6,8 +6,8 @@ import io.vertx.core.json.JsonObject;
 import otocloud.auth.dao.UserDAO;
 import otocloud.common.ActionURI;
 import otocloud.framework.common.IgnoreAuthVerify;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
@@ -32,7 +32,7 @@ public class CellNoQueryHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 
      */
     @Override
-    public void handle(OtoCloudBusMessage<JsonObject> msg) {
+    public void handle(CommandMessage<JsonObject> msg) {
 /*        boolean isLegal = BusMessageChecker.checkQueryCellNo(msg.body(), errMsg -> {
             msg.fail(ErrCode.DUPLICATED_CELL_NO.getCode(), errMsg);
         });

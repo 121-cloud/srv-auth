@@ -1,16 +1,17 @@
 package otocloud.auth.admin;
 
-import org.jasypt.util.password.StrongPasswordEncryptor;
-
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.sql.UpdateResult;
+
+import org.jasypt.util.password.StrongPasswordEncryptor;
+
 import otocloud.auth.common.RSAUtil;
 import otocloud.auth.dao.UserDAO;
 import otocloud.common.ActionURI;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
@@ -57,7 +58,7 @@ public class UserUpdateHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 
      */
     @Override
-    public void handle(OtoCloudBusMessage<JsonObject> msg) {
+    public void handle(CommandMessage<JsonObject> msg) {
 /*        boolean isLegal = busMessageChecker.checkUpdateUserInfo(msg.body(), errMsg -> {
             msg.fail(ErrCode.BUS_MSG_FORMAT_ERR.getCode(), errMsg);
         });

@@ -1,14 +1,15 @@
 package otocloud.auth.admin;
 
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+
 import javax.validation.ConstraintViolationException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import otocloud.auth.common.ErrCode;
 import otocloud.auth.common.RSAUtil;
 import otocloud.auth.common.Required;
@@ -17,8 +18,8 @@ import otocloud.auth.dao.UserDAO;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
 import otocloud.framework.common.IgnoreAuthVerify;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
@@ -125,6 +126,7 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * {
      * 	  acct_id: 租户ID
      * 	  biz_unit_id: 业务单元ID
+     *    d_org_role_id;
      * 	  mgr_post_id: IT管理员岗位ID
      * 	  auth_role_id: 对应的角色 规格
      * 	  user: {
@@ -137,7 +139,7 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
      * 
      */
     @Override
-    public void handle(OtoCloudBusMessage<JsonObject> msg) {
+    public void handle(CommandMessage<JsonObject> msg) {
         boolean isLegal = checkCreateUserInfo(msg.body(), errMsg -> {
             msg.fail(ErrCode.BUS_MSG_FORMAT_ERR.getCode(), errMsg);
         });
@@ -152,6 +154,7 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
         JsonObject content = body.getJsonObject("content");
         Long acctId = content.getLong("acct_id");
         Long bizUnitId = content.getLong("biz_unit_id");
+        Long d_org_role_id = content.getLong("d_org_role_id", 0L);
         Long mgrPostId = content.getLong("mgr_post_id");
         Long authRoleId = content.getLong("auth_role_id");
 
@@ -206,7 +209,7 @@ public class AdminRegisterHandler extends OtoCloudEventHandlerImpl<JsonObject> {
                 }
 
                 Future<JsonObject> createUserfuture = Future.future();
-                userDAO.create(userInfo, acctId, true, bizUnitId, true, mgrPostId, authRoleId, createUserfuture);
+                userDAO.create(userInfo, acctId, true, bizUnitId, d_org_role_id, true, mgrPostId, authRoleId, createUserfuture);
                 createUserfuture.setHandler(userResult -> {
                     if (userResult.succeeded()) {
                     	JsonObject u = userResult.result();

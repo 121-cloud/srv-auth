@@ -1,14 +1,15 @@
 package otocloud.auth.admin;
 
 
-import javax.validation.ConstraintViolationException;
-
-import org.apache.commons.codec.digest.DigestUtils;
-
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+
+import javax.validation.ConstraintViolationException;
+
+import org.apache.commons.codec.digest.DigestUtils;
+
 import otocloud.auth.AuthService;
 import otocloud.auth.common.ErrCode;
 import otocloud.auth.common.Required;
@@ -17,8 +18,8 @@ import otocloud.auth.dao.UserDAO;
 import otocloud.common.ActionURI;
 import otocloud.common.SessionSchema;
 import otocloud.framework.common.IgnoreAuthVerify;
+import otocloud.framework.core.CommandMessage;
 import otocloud.framework.core.HandlerDescriptor;
-import otocloud.framework.core.OtoCloudBusMessage;
 import otocloud.framework.core.OtoCloudComponentImpl;
 import otocloud.framework.core.OtoCloudEventHandlerImpl;
 
@@ -87,6 +88,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
      * {
      * 	  acct_id: 租户ID
      * 	  biz_unit_id: 业务单元ID
+     *    d_org_role_id:
      * 	  d_is_global_bu: 是否全局业务单元
      * 	  post_id: 岗位ID
      * 	  auth_role_id: 对应的角色 规格
@@ -95,7 +97,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
      * 
      */
     @Override
-    public void handle(OtoCloudBusMessage<JsonObject> msg) {
+    public void handle(CommandMessage<JsonObject> msg) {
         boolean isLegal = checkCreateUserInfo(msg.body(), errMsg -> {
             msg.fail(ErrCode.BUS_MSG_FORMAT_ERR.getCode(), errMsg);
         });
@@ -110,6 +112,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
         JsonObject content = body.getJsonObject("content");
         Long acctId = content.getLong("acct_id");
         Long bizUnitId = content.getLong("biz_unit_id");
+        Long d_org_role_id = content.getLong("d_org_role_id");
         Boolean d_is_global_bu = content.getBoolean("d_is_global_bu");
         Long mgrPostId = content.getLong("post_id");
         Long authRoleId = content.getLong("auth_role_id", 0L);
@@ -126,7 +129,7 @@ public class UserJoinToAcctHandler extends OtoCloudEventHandlerImpl<JsonObject> 
 
         UserDAO userDAO = new UserDAO(this.componentImpl.getSysDatasource());
         Future<JsonObject> createUserfuture = Future.future();
-        userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, d_is_global_bu, mgrPostId, authRoleId, auth_user_id, createUserfuture);
+        userDAO.joinToAcct(userInfo, acctId, false, bizUnitId, d_org_role_id, d_is_global_bu, mgrPostId, authRoleId, auth_user_id, createUserfuture);
         createUserfuture.setHandler(userResult -> {
             if (userResult.succeeded()) {
             	JsonObject u = userResult.result();
