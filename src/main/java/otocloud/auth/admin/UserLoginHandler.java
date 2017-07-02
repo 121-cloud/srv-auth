@@ -51,10 +51,10 @@ public class UserLoginHandler extends OtoCloudEventHandlerImpl<JsonObject> {
     @Override
     public void handle(CommandMessage<JsonObject> msg) {
     	
-		String token = msg.headers().get("token");	
+		String token = msg.headers().get("token");
      	
-    	JsonObject loginInfo = msg.body();    	
-        JsonObject data = loginInfo.getJsonObject("content"); 
+    	//JsonObject loginInfo = msg.body();    	
+        JsonObject data = msg.getContent(); //loginInfo.getJsonObject("content"); 
 		Long acctId = data.getLong("acct_id");   
 		
         JsonObject sessionData = msg.getSession();
